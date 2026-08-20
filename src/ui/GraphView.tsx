@@ -203,6 +203,14 @@ function selectedBranchLanes(rows: GraphRow[], selectedRefs: Set<string>): Branc
   })).map((lane, displayLane) => ({...lane, displayLane}));
 }
 
+function graphLaneRows(rows: GraphRow[]): BranchLane[] {
+  return Array.from({length: Math.max(1, ...rows.map(row => row.laneCount))}, (_, displayLane) => ({
+    branch: `lane ${displayLane + 1}`,
+    graphLane: displayLane,
+    displayLane,
+  }));
+}
+
 function selectedBranchAtCommit(refs: string[], branchLanes: BranchLane[]): BranchLane[] {
   const normalized = normalizedRefs(refs);
   return branchLanes.filter(({branch}) => normalized.has(branch));
@@ -497,13 +505,7 @@ export function HorizontalGraphView({
   const start = Math.max(0, Math.min(cursor - Math.floor(visibleColumns / 2), rows.length - visibleColumns));
   const end = Math.min(rows.length, start + visibleColumns);
   const visibleRows = rows.slice(start, end);
-  const branchRows = selectedLaneLabels.length > 0
-    ? selectedLaneLabels
-    : Array.from({length: Math.max(1, ...visibleRows.map(row => row.laneCount))}, (_, displayLane) => ({
-        branch: `lane ${displayLane + 1}`,
-        graphLane: displayLane,
-        displayLane,
-      }));
+  const branchRows = selectedRefs.size > 0 ? selectedLaneLabels : graphLaneRows(visibleRows);
   const selectedCommit = rows[cursor]?.commit;
   const selectedSummary = selectedCommit ? `${selectedCommit.shortHash} ${selectedCommit.subject}` : '';
 
