@@ -23,6 +23,12 @@ type RefBadge = {
   kind: 'local' | 'remote';
 };
 
+type BranchLane = {
+  branch: string;
+  graphLane: number | undefined;
+  displayLane: number;
+};
+
 function laneColor(lane: number) {
   return LANE_COLORS[lane % LANE_COLORS.length] ?? 'cyan';
 }
@@ -108,12 +114,14 @@ function truncateColumns(text: string, maxColumns: number): string {
 
 function SelectedBranchLane({
   branch,
-  lane,
+  displayLane,
+  graphLane,
 }: {
   branch: string;
-  lane: number | undefined;
+  displayLane: number;
+  graphLane: number | undefined;
 }) {
-  if (lane === undefined) {
+  if (graphLane === undefined) {
     return (
       <Text dimColor>
         {branch}: -
@@ -122,8 +130,8 @@ function SelectedBranchLane({
   }
 
   return (
-    <Text color={laneColor(lane)}>
-      ◆ lane {lane + 1}: {branch}
+    <Text color={laneColor(displayLane)}>
+      ◆ ref {displayLane + 1}: {branch}
     </Text>
   );
 }
@@ -187,11 +195,103 @@ function refBadges(refs: string[], showOrigin: boolean): RefBadge[] {
   return [...local, ...remote];
 }
 
-function selectedBranchLanes(rows: GraphRow[], selectedRefs: Set<string>): Array<{branch: string; lane: number | undefined}> {
+function selectedBranchLanes(rows: GraphRow[], selectedRefs: Set<string>): BranchLane[] {
   return [...selectedRefs].map(branch => ({
     branch,
-    lane: rows.find(row => selectedRefsForCommit(row.commit.refs, new Set([branch])).length > 0)?.lane,
-  }));
+    graphLane: rows.find(row => selectedRefsForCommit(row.commit.refs, new Set([branch])).length > 0)?.lane,
+    displayLane: 0,
+  })).map((lane, displayLane) => ({...lane, displayLane}));
+}
+
+function selectedBranchAtCommit(refs: string[], branchLanes: BranchLane[]): BranchLane[] {
+  const normalized = normalizedRefs(refs);
+  return branchLanes.filter(({branch}) => normalized.has(branch));
+}
+
+function RefLaneStrip({
+  row,
+  branchLanes,
+}: {
+  row: GraphRow;
+  branchLanes: BranchLane[];
+}) {
+  const width = Math.max(0, branchLanes.length * 2 - 1);
+  if (width === 0) return null;
+
+  const tips = new Set(selectedBranchAtCommit(row.commit.refs, branchLanes).map(({displayLane}) => displayLane));
+
+  return (
+    <Text>
+      {branchLanes.map(({branch, graphLane, displayLane}, index) => {
+        const active = graphLane === row.lane || branchActive(row, graphLane);
+        const tip = tips.has(displayLane);
+        const char = tip ? '◆' : active ? '│' : ' ';
+
+        return (
+          <React.Fragment key={branch}>
+            <Text color={tip ? 'yellow' : laneColor(displayLane)} bold={tip}>
+              {char}
+            </Text>
+            {index < branchLanes.length - 1 ? <Text> </Text> : null}
+          </React.Fragment>
+        );
+      })}
+      {' '.repeat(Math.max(0, width - (branchLanes.length * 2 - 1)))}
+    </Text>
+  );
+}
+
+function RefLaneEdgeStrip({
+  row,
+  branchLanes,
+}: {
+  row: GraphRow;
+  branchLanes: BranchLane[];
+}) {
+  const width = Math.max(0, branchLanes.length * 2 - 1);
+  if (width === 0) return null;
+
+  return (
+    <Text>
+      {branchLanes.map(({branch, graphLane, displayLane}, index) => {
+        const active = branchEdgeActive(row, graphLane);
+
+        return (
+          <React.Fragment key={branch}>
+            <Text color={laneColor(displayLane)}>{active ? '│' : ' '}</Text>
+            {index < branchLanes.length - 1 ? <Text> </Text> : null}
+          </React.Fragment>
+        );
+      })}
+      {' '.repeat(Math.max(0, width - (branchLanes.length * 2 - 1)))}
+    </Text>
+  );
+}
+
+function branchLabel(branch: string): string {
+  return branch.startsWith('origin/') ? branch.replace(/^origin\//, 'origin/') : branch;
+}
+
+function branchKind(branch: string): RefBadge['kind'] {
+  return branch.startsWith('origin/') ? 'remote' : 'local';
+}
+
+function BranchLabel({branch}: {branch: string}) {
+  const text = branchLabel(branch);
+
+  return <RefBadgeText badge={{key: branch, text, width: displayWidth(text), kind: branchKind(branch)}} />;
+}
+
+function branchTip(row: GraphRow, branch: string): boolean {
+  return selectedRefsForCommit(row.commit.refs, new Set([branch])).length > 0;
+}
+
+function branchActive(row: GraphRow, graphLane: number | undefined): boolean {
+  return graphLane !== undefined && row.nodeSegments[graphLane * 2]?.char !== undefined;
+}
+
+function branchEdgeActive(row: GraphRow, graphLane: number | undefined): boolean {
+  return graphLane !== undefined && row.edgeSegments?.[graphLane * 2]?.char !== undefined;
 }
 
 function CommitHash({shortHash, selected, branchTip}: {shortHash: string; selected: boolean; branchTip: boolean}) {
@@ -302,8 +402,8 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
       {branchLaneLabels.length > 0 ? (
         <Box columnGap={2}>
           <Text dimColor>selected lanes</Text>
-          {branchLaneLabels.map(({branch, lane}) => (
-            <SelectedBranchLane key={branch} branch={branch} lane={lane} />
+          {branchLaneLabels.map(({branch, graphLane, displayLane}) => (
+            <SelectedBranchLane key={branch} branch={branch} graphLane={graphLane} displayLane={displayLane} />
           ))}
         </Box>
       ) : null}
@@ -313,9 +413,10 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
         const selected = index === cursor;
         const branchRefs = selectedRefsForCommit(row.commit.refs, selectedRefs);
         const selectedLane = branchRefs.length > 0 ? row.lane : undefined;
+        const refLaneWidth = Math.max(0, branchLaneLabels.length * 2 - 1);
         const rowPrefixWidth = 2 + graphWidth + 2 + 9;
         const rowWidth = Math.max(0, terminalColumns - ROW_RIGHT_PADDING);
-        const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth);
+        const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth - refLaneWidth - (refLaneWidth > 0 ? 1 : 0));
         const metadata = `${row.commit.subject}  ${row.commit.author} · ${formatDate(row.commit.timestamp)}`;
 
         return (
@@ -327,6 +428,16 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
               <Box width={graphWidth} flexShrink={0}>
                 <GraphLine segments={row.nodeSegments} width={graphWidth} selectedLane={selectedLane} />
               </Box>
+              {refLaneWidth > 0 ? (
+                <>
+                  <Box width={1} flexShrink={0}>
+                    <Text> </Text>
+                  </Box>
+                  <Box width={refLaneWidth} flexShrink={0}>
+                    <RefLaneStrip row={row} branchLanes={branchLaneLabels} />
+                  </Box>
+                </>
+              ) : null}
               <Box width={2} flexShrink={0}>
                 <Text>  </Text>
               </Box>
@@ -349,6 +460,16 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
                 <Box width={graphWidth} flexShrink={0}>
                   <GraphLine segments={row.edgeSegments} width={graphWidth} selectedLane={selectedLane} />
                 </Box>
+                {refLaneWidth > 0 ? (
+                  <>
+                    <Box width={1} flexShrink={0}>
+                      <Text> </Text>
+                    </Box>
+                    <Box width={refLaneWidth} flexShrink={0}>
+                      <RefLaneEdgeStrip row={row} branchLanes={branchLaneLabels} />
+                    </Box>
+                  </>
+                ) : null}
               </Box>
             ) : null}
           </React.Fragment>
@@ -376,19 +497,15 @@ export function HorizontalGraphView({
   const start = Math.max(0, Math.min(cursor - Math.floor(visibleColumns / 2), rows.length - visibleColumns));
   const end = Math.min(rows.length, start + visibleColumns);
   const visibleRows = rows.slice(start, end);
-  const laneCount = Math.max(1, ...visibleRows.map(row => row.laneCount));
+  const branchRows = selectedLaneLabels.length > 0
+    ? selectedLaneLabels
+    : Array.from({length: Math.max(1, ...visibleRows.map(row => row.laneCount))}, (_, displayLane) => ({
+        branch: `lane ${displayLane + 1}`,
+        graphLane: displayLane,
+        displayLane,
+      }));
   const selectedCommit = rows[cursor]?.commit;
   const selectedSummary = selectedCommit ? `${selectedCommit.shortHash} ${selectedCommit.subject}` : '';
-  const laneLabels = React.useMemo(() => {
-    const labels = new Map<number, string>();
-
-    for (const {branch, lane} of selectedLaneLabels) {
-      if (lane === undefined || labels.has(lane)) continue;
-      labels.set(lane, branch);
-    }
-
-    return labels;
-  }, [selectedLaneLabels]);
 
   useInput((input, key) => {
     if (key.leftArrow) {
@@ -421,29 +538,36 @@ export function HorizontalGraphView({
   return (
     <Box flexDirection="column" width={terminalColumns}>
       <Text dimColor>newer ← commits → older</Text>
-      {Array.from({length: laneCount}, (_, lane) => (
-        <Box key={lane} flexDirection="row" flexWrap="nowrap" width={terminalColumns}>
+      {branchRows.map(({branch, graphLane, displayLane}) => (
+        <Box key={branch} flexDirection="row" flexWrap="nowrap" width={terminalColumns}>
           <Box width={laneLabelWidth} flexShrink={0}>
-            <Text color={laneColor(lane)}>
-              {truncateColumns(laneLabels.get(lane) ?? `lane ${lane + 1}`, laneLabelWidth - 1).padEnd(laneLabelWidth)}
-            </Text>
+            {branch.startsWith('lane ') ? (
+              <Text color={laneColor(displayLane)}>
+                {truncateColumns(branch, laneLabelWidth - 1).padEnd(laneLabelWidth)}
+              </Text>
+            ) : (
+              <>
+                <BranchLabel branch={truncateColumns(branch, laneLabelWidth - 1)} />
+                <Text>{' '.repeat(Math.max(1, laneLabelWidth - displayWidth(truncateColumns(branch, laneLabelWidth - 1))))}</Text>
+              </>
+            )}
           </Box>
           {visibleRows.map((row, offset) => {
             const index = start + offset;
-            const active = row.nodeSegments[lane * 2]?.char !== undefined;
-            const commitHere = row.lane === lane;
+            const active = branchActive(row, graphLane);
+            const commitHere = branchTip(row, branch) || (branch.startsWith('lane ') && row.lane === graphLane);
             const selected = index === cursor;
-            const branchTip = selectedRefsForCommit(row.commit.refs, selectedRefs).length > 0;
-            const nextActive = visibleRows[offset + 1]?.nodeSegments[lane * 2]?.char !== undefined;
-            const node = selected ? '◉' : branchTip ? '◆' : '●';
+            const tip = branchTip(row, branch);
+            const nextActive = branchActive(visibleRows[offset + 1] ?? row, graphLane) && offset < visibleRows.length - 1;
+            const node = selected ? '◉' : tip ? '◆' : '●';
             const char = commitHere ? node : active ? '─' : ' ';
             const connector = active && nextActive && offset < visibleRows.length - 1 ? '─' : ' ';
 
             return (
               <Text
-                key={`${row.commit.hash}-${lane}`}
-                color={selected || branchTip ? 'yellow' : laneColor(lane)}
-                bold={selected || branchTip}
+                key={`${row.commit.hash}-${branch}`}
+                color={selected || tip ? 'yellow' : laneColor(displayLane)}
+                bold={selected || tip}
               >
                 {char}
                 {connector}
