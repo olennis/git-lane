@@ -1,6 +1,6 @@
 {
   "name": "@olennis/git-lane",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A focused Git lane TUI for local development workflows.",
   "type": "module",
   "license": "MIT",
