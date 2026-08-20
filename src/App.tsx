@@ -1,5 +1,6 @@
 import React from 'react';
 import {Box, Text, useApp, useInput} from 'ink';
+import {fetchOrigin} from './git/fetchOrigin.js';
 import {getBranches} from './git/getBranches.js';
 import {getCommits} from './git/getCommits.js';
 import {getCurrentBranch} from './git/getCurrentBranch.js';
@@ -14,6 +15,8 @@ type Props = {
 };
 
 type Mode = 'graph' | 'branches' | 'details';
+
+const AUTO_REFRESH_INTERVAL_MS = 15_000;
 
 function chooseInitialRefs(branches: GitBranch[], current: string, requested?: string): Set<string> {
   const refs = new Set<string>();
@@ -59,20 +62,73 @@ export function App({baseBranch}: Props) {
   const [horizontalView, setHorizontalView] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>();
+  const refreshing = React.useRef(false);
 
-  const loadCommits = React.useCallback(async (refs: Set<string>, focused: boolean) => {
-    setLoading(true);
-    setError(undefined);
+  const refreshData = React.useCallback(
+    async ({
+      refs,
+      focused,
+      includeOrigins,
+      fetchRemote,
+      visibleLoading,
+      preserveCursor,
+    }: {
+      refs: Set<string>;
+      focused: boolean;
+      includeOrigins: boolean;
+      fetchRemote: boolean;
+      visibleLoading: boolean;
+      preserveCursor: boolean;
+    }) => {
+      if (refreshing.current) return;
+      refreshing.current = true;
+      if (visibleLoading) {
+        setLoading(true);
+        setError(undefined);
+      }
 
-    try {
-      setCommits(await getCommits([...refs], {firstParent: focused}));
-      setCursor(0);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        if (fetchRemote) await fetchOrigin();
+
+        const [branchList, nextCommits] = await Promise.all([
+          getBranches({includeOrigins}),
+          getCommits([...refs], {firstParent: focused}),
+        ]);
+        const currentHash = preserveCursor ? commits[cursor]?.hash : undefined;
+
+        setBranches(branchList);
+        setCommits(nextCommits);
+        setCursor(current => {
+          if (!preserveCursor || !currentHash) return 0;
+
+          const nextCursor = nextCommits.findIndex(commit => commit.hash === currentHash);
+          if (nextCursor !== -1) return nextCursor;
+
+          return Math.min(current, Math.max(0, nextCommits.length - 1));
+        });
+      } catch (caught) {
+        if (visibleLoading) setError(caught instanceof Error ? caught.message : String(caught));
+      } finally {
+        refreshing.current = false;
+        if (visibleLoading) setLoading(false);
+      }
+    },
+    [commits, cursor],
+  );
+
+  const loadCommits = React.useCallback(
+    async (refs: Set<string>, focused: boolean) => {
+      await refreshData({
+        refs,
+        focused,
+        includeOrigins: showOrigin,
+        fetchRemote: showOrigin,
+        visibleLoading: true,
+        preserveCursor: false,
+      });
+    },
+    [refreshData, showOrigin],
+  );
 
   const load = React.useCallback(async () => {
     try {
@@ -98,6 +154,23 @@ export function App({baseBranch}: Props) {
     void load();
   }, [load]);
 
+  React.useEffect(() => {
+    if (loading || selectedRefs.size === 0) return;
+
+    const timer = setInterval(() => {
+      void refreshData({
+        refs: selectedRefs,
+        focused: focusedHistory,
+        includeOrigins: showOrigin,
+        fetchRemote: showOrigin,
+        visibleLoading: false,
+        preserveCursor: true,
+      });
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(timer);
+  }, [focusedHistory, loading, refreshData, selectedRefs, showOrigin]);
+
   useInput(input => {
     if (mode !== 'graph') return;
 
@@ -114,6 +187,8 @@ export function App({baseBranch}: Props) {
 
       void (async () => {
         try {
+          if (nextShowOrigin) await fetchOrigin();
+
           const branchList = await getBranches({includeOrigins: nextShowOrigin});
           const nextRefs = nextShowOrigin
             ? withOriginCounterparts(selectedRefs, branchList)
