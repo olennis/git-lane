@@ -16,6 +16,13 @@ type Props = {
 const LANE_COLORS = ['cyan', 'magenta', 'yellow', 'green', 'blue', 'red'] as const;
 const ROW_RIGHT_PADDING = 1;
 
+type RefBadge = {
+  key: string;
+  text: string;
+  width: number;
+  kind: 'local' | 'remote';
+};
+
 function laneColor(lane: number) {
   return LANE_COLORS[lane % LANE_COLORS.length] ?? 'cyan';
 }
@@ -153,12 +160,31 @@ function GraphLine({
   );
 }
 
-function refsText(refs: string[], showOrigin: boolean): string {
-  const local = localRefs(refs).map(ref => `[${ref}]`);
-  const remote = showOrigin ? remoteRefs(refs).map(ref => `(${ref})`) : [];
-  const refsToShow = [...local, ...remote];
+function refBadges(refs: string[], showOrigin: boolean): RefBadge[] {
+  const local = localRefs(refs).map(ref => {
+    const text = `[${ref}]`;
 
-  return refsToShow.length > 0 ? `${refsToShow.join(' ')} ` : '';
+    return {
+      key: `local-${ref}`,
+      text,
+      width: displayWidth(text),
+      kind: 'local' as const,
+    };
+  });
+  const remote = showOrigin
+    ? remoteRefs(refs).map(ref => {
+        const text = `(${ref})`;
+
+        return {
+          key: `remote-${ref}`,
+          text,
+          width: displayWidth(text),
+          kind: 'remote' as const,
+        };
+      })
+    : [];
+
+  return [...local, ...remote];
 }
 
 function selectedBranchLanes(rows: GraphRow[], selectedRefs: Set<string>): Array<{branch: string; lane: number | undefined}> {
@@ -182,14 +208,59 @@ function CursorCell({selected}: {selected: boolean}) {
   return selected ? <Text color="yellow">› </Text> : <Text>  </Text>;
 }
 
-function MetadataCell({metadata, selected, width}: {metadata: string; selected: boolean; width: number}) {
+function RefBadgeText({badge}: {badge: RefBadge}) {
+  return badge.kind === 'local' ? (
+    <Text color="black" backgroundColor="green" bold>
+      {badge.text}
+    </Text>
+  ) : (
+    <Text color="white" backgroundColor="blue" bold>
+      {badge.text}
+    </Text>
+  );
+}
+
+function MetadataCell({
+  refs,
+  showOrigin,
+  metadata,
+  selected,
+  width,
+}: {
+  refs: string[];
+  showOrigin: boolean;
+  metadata: string;
+  selected: boolean;
+  width: number;
+}) {
   if (width <= 0) return null;
 
+  let remaining = width;
+  const badgesToShow: RefBadge[] = [];
+
+  for (const badge of refBadges(refs, showOrigin)) {
+    const needed = badge.width + 1;
+    if (needed > remaining) break;
+
+    badgesToShow.push(badge);
+    remaining -= needed;
+  }
+
+  const text = truncateColumns(metadata, remaining);
+
   return (
-    <Box width={width} flexShrink={0}>
-      <Text bold={selected} wrap="truncate-end">
-        {metadata}
-      </Text>
+    <Box width={width} flexDirection="row" flexWrap="nowrap" flexShrink={0}>
+      {badgesToShow.map(badge => (
+        <React.Fragment key={badge.key}>
+          <RefBadgeText badge={badge} />
+          <Text> </Text>
+        </React.Fragment>
+      ))}
+      {text ? (
+        <Text bold={selected} wrap="truncate-end">
+          {text}
+        </Text>
+      ) : null}
     </Box>
   );
 }
@@ -245,12 +316,7 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
         const rowPrefixWidth = 2 + graphWidth + 2 + 9;
         const rowWidth = Math.max(0, terminalColumns - ROW_RIGHT_PADDING);
         const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth);
-        const metadata = truncateColumns(
-          `${refsText(row.commit.refs, showOrigin)}${row.commit.subject}  ${row.commit.author} · ${formatDate(
-            row.commit.timestamp,
-          )}`,
-          metadataWidth,
-        );
+        const metadata = `${row.commit.subject}  ${row.commit.author} · ${formatDate(row.commit.timestamp)}`;
 
         return (
           <React.Fragment key={row.commit.hash}>
@@ -267,7 +333,13 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
               <Box width={9} flexShrink={0}>
                 <CommitHash shortHash={row.commit.shortHash} selected={selected} branchTip={branchRefs.length > 0} />
               </Box>
-              <MetadataCell metadata={metadata} selected={selected} width={metadataWidth} />
+              <MetadataCell
+                refs={row.commit.refs}
+                showOrigin={showOrigin}
+                metadata={metadata}
+                selected={selected}
+                width={metadataWidth}
+              />
             </Box>
             {row.edgeSegments ? (
               <Box width={rowWidth} flexDirection="row" flexWrap="nowrap">
@@ -306,12 +378,7 @@ export function HorizontalGraphView({
   const visibleRows = rows.slice(start, end);
   const laneCount = Math.max(1, ...visibleRows.map(row => row.laneCount));
   const selectedCommit = rows[cursor]?.commit;
-  const selectedSummary = selectedCommit
-    ? truncateColumns(
-        `${refsText(selectedCommit.refs, showOrigin)}${selectedCommit.shortHash} ${selectedCommit.subject}`,
-        terminalColumns - ROW_RIGHT_PADDING,
-      )
-    : '';
+  const selectedSummary = selectedCommit ? `${selectedCommit.shortHash} ${selectedCommit.subject}` : '';
   const laneLabels = React.useMemo(() => {
     const labels = new Map<number, string>();
 
@@ -385,10 +452,14 @@ export function HorizontalGraphView({
           })}
         </Box>
       ))}
-      {selectedSummary ? (
-        <Text bold wrap="truncate-end">
-          {selectedSummary}
-        </Text>
+      {selectedCommit ? (
+        <MetadataCell
+          refs={selectedCommit.refs}
+          showOrigin={showOrigin}
+          metadata={selectedSummary}
+          selected
+          width={terminalColumns - ROW_RIGHT_PADDING}
+        />
       ) : null}
     </Box>
   );

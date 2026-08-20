@@ -1,9 +1,17 @@
 {
   "name": "@olennis/git-lane",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A focused Git lane TUI for local development workflows.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olennis/git-lane.git"
+  },
+  "bugs": {
+    "url": "https://github.com/olennis/git-lane/issues"
+  },
+  "homepage": "https://github.com/olennis/git-lane#readme",
   "keywords": [
     "git",
     "cli",
