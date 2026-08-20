@@ -422,9 +422,10 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
         const branchRefs = selectedRefsForCommit(row.commit.refs, selectedRefs);
         const selectedLane = branchRefs.length > 0 ? row.lane : undefined;
         const refLaneWidth = Math.max(0, branchLaneLabels.length * 2 - 1);
-        const rowPrefixWidth = 2 + graphWidth + 2 + 9;
+        const primaryGraphWidth = refLaneWidth > 0 ? refLaneWidth : graphWidth;
+        const rowPrefixWidth = 2 + primaryGraphWidth + 2 + 9;
         const rowWidth = Math.max(0, terminalColumns - ROW_RIGHT_PADDING);
-        const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth - refLaneWidth - (refLaneWidth > 0 ? 1 : 0));
+        const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth);
         const metadata = `${row.commit.subject}  ${row.commit.author} · ${formatDate(row.commit.timestamp)}`;
 
         return (
@@ -433,19 +434,13 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
               <Box width={2} flexShrink={0}>
                 <CursorCell selected={selected} />
               </Box>
-              <Box width={graphWidth} flexShrink={0}>
-                <GraphLine segments={row.nodeSegments} width={graphWidth} selectedLane={selectedLane} />
+              <Box width={primaryGraphWidth} flexShrink={0}>
+                {refLaneWidth > 0 ? (
+                  <RefLaneStrip row={row} branchLanes={branchLaneLabels} />
+                ) : (
+                  <GraphLine segments={row.nodeSegments} width={graphWidth} selectedLane={selectedLane} />
+                )}
               </Box>
-              {refLaneWidth > 0 ? (
-                <>
-                  <Box width={1} flexShrink={0}>
-                    <Text> </Text>
-                  </Box>
-                  <Box width={refLaneWidth} flexShrink={0}>
-                    <RefLaneStrip row={row} branchLanes={branchLaneLabels} />
-                  </Box>
-                </>
-              ) : null}
               <Box width={2} flexShrink={0}>
                 <Text>  </Text>
               </Box>
@@ -465,19 +460,13 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
                 <Box width={2} flexShrink={0}>
                   <Text>  </Text>
                 </Box>
-                <Box width={graphWidth} flexShrink={0}>
-                  <GraphLine segments={row.edgeSegments} width={graphWidth} selectedLane={selectedLane} />
+                <Box width={primaryGraphWidth} flexShrink={0}>
+                  {refLaneWidth > 0 ? (
+                    <RefLaneEdgeStrip row={row} branchLanes={branchLaneLabels} />
+                  ) : (
+                    <GraphLine segments={row.edgeSegments} width={graphWidth} selectedLane={selectedLane} />
+                  )}
                 </Box>
-                {refLaneWidth > 0 ? (
-                  <>
-                    <Box width={1} flexShrink={0}>
-                      <Text> </Text>
-                    </Box>
-                    <Box width={refLaneWidth} flexShrink={0}>
-                      <RefLaneEdgeStrip row={row} branchLanes={branchLaneLabels} />
-                    </Box>
-                  </>
-                ) : null}
               </Box>
             ) : null}
           </React.Fragment>
