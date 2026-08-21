@@ -331,13 +331,17 @@ function RefBadgeText({badge}: {badge: RefBadge}) {
 function MetadataCell({
   refs,
   showOrigin,
-  metadata,
+  subject,
+  author,
+  date,
   selected,
   width,
 }: {
   refs: string[];
   showOrigin: boolean;
-  metadata: string;
+  subject: string;
+  author?: string;
+  date?: string;
   selected: boolean;
   width: number;
 }) {
@@ -354,7 +358,12 @@ function MetadataCell({
     remaining -= needed;
   }
 
-  const text = truncateColumns(metadata, remaining);
+  const metaText = [author, date].filter(Boolean).join(' · ');
+  const metaSeparator = metaText ? '  ' : '';
+  const metaWidth = displayWidth(metaSeparator) + displayWidth(metaText);
+  const shouldShowMeta = metaText.length > 0 && remaining > metaWidth + 8;
+  const subjectWidth = Math.max(0, remaining - (shouldShowMeta ? metaWidth : 0));
+  const subjectText = truncateColumns(subject, subjectWidth);
 
   return (
     <Box width={width} flexDirection="row" flexWrap="nowrap" flexShrink={0}>
@@ -364,9 +373,15 @@ function MetadataCell({
           <Text> </Text>
         </React.Fragment>
       ))}
-      {text ? (
+      {subjectText ? (
         <Text bold={selected} wrap="truncate-end">
-          {text}
+          {subjectText}
+        </Text>
+      ) : null}
+      {shouldShowMeta ? (
+        <Text dimColor color="gray" wrap="truncate-end">
+          {metaSeparator}
+          {metaText}
         </Text>
       ) : null}
     </Box>
@@ -426,7 +441,6 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
         const rowPrefixWidth = 2 + primaryGraphWidth + 2 + 9;
         const rowWidth = Math.max(0, terminalColumns - ROW_RIGHT_PADDING);
         const metadataWidth = Math.max(0, rowWidth - rowPrefixWidth);
-        const metadata = `${row.commit.subject}  ${row.commit.author} · ${formatDate(row.commit.timestamp)}`;
 
         return (
           <React.Fragment key={row.commit.hash}>
@@ -450,7 +464,9 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
               <MetadataCell
                 refs={row.commit.refs}
                 showOrigin={showOrigin}
-                metadata={metadata}
+                subject={row.commit.subject}
+                author={row.commit.author}
+                date={formatDate(row.commit.timestamp)}
                 selected={selected}
                 width={metadataWidth}
               />
@@ -571,7 +587,7 @@ export function HorizontalGraphView({
         <MetadataCell
           refs={selectedCommit.refs}
           showOrigin={showOrigin}
-          metadata={selectedSummary}
+          subject={selectedSummary}
           selected
           width={terminalColumns - ROW_RIGHT_PADDING}
         />
