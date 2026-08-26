@@ -6,6 +6,7 @@ export type GitCommit = {
   author: string;
   timestamp: number;
   subject: string;
+  kind?: 'commit' | 'worktree';
 };
 
 export type GitBranch = {

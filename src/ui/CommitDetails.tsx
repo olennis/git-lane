@@ -25,11 +25,13 @@ export function CommitDetails({commit, onClose, width, showHelp = true}: Props) 
   });
 
   const boxProps = width === undefined ? {} : {width};
+  const statusLabel = commit.kind === 'worktree' ? 'status' : 'commit';
+  const statusValue = commit.kind === 'worktree' ? 'uncommitted changes' : commit.hash;
 
   return (
     <Box flexDirection="column" borderStyle="round" paddingX={1} {...boxProps}>
       <Text bold wrap="truncate-end">{commit.subject}</Text>
-      <DetailLine label="commit" value={commit.hash} />
+      <DetailLine label={statusLabel} value={statusValue} />
       <DetailLine label="author" value={commit.author} />
       <DetailLine label="refs" value={commit.refs.join(', ')} />
       <DetailLine label="parents" value={commit.parents.join(' ')} />

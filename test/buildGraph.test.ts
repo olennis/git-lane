@@ -58,3 +58,20 @@ test('preserves lane identity on rendered segments', () => {
   assert.equal(rows[1]?.nodeSegments[0]?.colorLane, 0);
   assert.equal(rows[1]?.nodeSegments[2]?.colorLane, 1);
 });
+
+test('renders a worktree row above its HEAD commit', () => {
+  const rows = buildGraph([
+    {
+      ...commit('__git_lane_worktree__', ['c2']),
+      shortHash: 'worktree',
+      subject: 'Uncommitted changes (1 file)',
+      kind: 'worktree',
+    },
+    commit('c2', ['c1']),
+    commit('c1'),
+  ]);
+
+  assert.deepEqual(rows.map(row => row.lane), [0, 0, 0]);
+  assert.deepEqual(rows.map(row => line(row.nodeSegments)), ['●', '●', '●']);
+  assert.ok(rows.every(row => row.edgeSegments === undefined));
+});

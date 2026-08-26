@@ -4,6 +4,7 @@ import {fetchOrigin} from './git/fetchOrigin.js';
 import {getBranches} from './git/getBranches.js';
 import {getCommits} from './git/getCommits.js';
 import {getCurrentBranch} from './git/getCurrentBranch.js';
+import {getWorktreeCommit} from './git/getWorktreeCommit.js';
 import type {GitBranch, GitCommit} from './git/types.js';
 import {buildGraph} from './graph/buildGraph.js';
 import {BranchFilter} from './ui/BranchFilter.js';
@@ -48,6 +49,27 @@ function withOriginCounterparts(refs: Set<string>, branches: GitBranch[]): Set<s
   return next;
 }
 
+async function withWorktreeCommit(
+  commits: GitCommit[],
+  refs: Set<string>,
+  currentBranch: string,
+): Promise<GitCommit[]> {
+  if (!currentBranch || !refs.has(currentBranch)) return commits;
+
+  const worktreeCommit = await getWorktreeCommit(currentBranch);
+  if (!worktreeCommit) return commits;
+
+  const visibleHashes = new Set(commits.map(commit => commit.hash));
+
+  return [
+    {
+      ...worktreeCommit,
+      parents: worktreeCommit.parents.filter(parent => visibleHashes.has(parent)),
+    },
+    ...commits,
+  ];
+}
+
 export function App({baseBranch}: Props) {
   const {exit} = useApp();
   const terminalColumns = process.stdout.columns ?? 100;
@@ -90,10 +112,12 @@ export function App({baseBranch}: Props) {
       try {
         if (fetchRemote) await fetchOrigin();
 
-        const [branchList, nextCommits] = await Promise.all([
+        const [branchList, rawCommits, currentBranch] = await Promise.all([
           getBranches({includeOrigins}),
           getCommits([...refs], {firstParent: focused}),
+          getCurrentBranch(),
         ]);
+        const nextCommits = await withWorktreeCommit(rawCommits, refs, currentBranch);
         const currentHash = preserveCursor ? commits[cursor]?.hash : undefined;
 
         setBranches(branchList);
@@ -138,10 +162,11 @@ export function App({baseBranch}: Props) {
       const branchList = await getBranches();
       const current = await getCurrentBranch();
       const nextRefs = chooseInitialRefs(branchList, current, baseBranch);
+      const rawCommits = await getCommits([...nextRefs], {firstParent: true});
 
       setBranches(branchList);
       setSelectedRefs(nextRefs);
-      setCommits(await getCommits([...nextRefs], {firstParent: true}));
+      setCommits(await withWorktreeCommit(rawCommits, nextRefs, current));
       setCursor(0);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
@@ -189,14 +214,18 @@ export function App({baseBranch}: Props) {
         try {
           if (nextShowOrigin) await fetchOrigin();
 
-          const branchList = await getBranches({includeOrigins: nextShowOrigin});
+          const [branchList, currentBranch] = await Promise.all([
+            getBranches({includeOrigins: nextShowOrigin}),
+            getCurrentBranch(),
+          ]);
           const nextRefs = nextShowOrigin
             ? withOriginCounterparts(selectedRefs, branchList)
             : removeOriginRefs(selectedRefs);
+          const rawCommits = await getCommits([...nextRefs], {firstParent: focusedHistory});
 
           setBranches(branchList);
           setSelectedRefs(nextRefs);
-          setCommits(await getCommits([...nextRefs], {firstParent: focusedHistory}));
+          setCommits(await withWorktreeCommit(rawCommits, nextRefs, currentBranch));
           setCursor(0);
         } catch (caught) {
           setError(caught instanceof Error ? caught.message : String(caught));
