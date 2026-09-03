@@ -2,6 +2,8 @@
 
 A focused Git lane TUI for local development.
 
+![Git Lane TUI showing a focused commit graph](./assets/git-lane-screenshot.svg)
+
 The default view starts from the current branch. It also starts in **FOCUSED** history mode, which follows first-parent history so unrelated merged branches do not explode the graph into dozens of lanes.
 
 ## Run locally

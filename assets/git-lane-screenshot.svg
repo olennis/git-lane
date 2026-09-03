@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Git Lane TUI screenshot</title>
+  <desc id="desc">Git Lane showing a focused commit graph for the main branch in a terminal window.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#000" flood-opacity="0.22"/>
+    </filter>
+    <style>
+      .term { font: 22px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+      .small { font-size: 19px; }
+      .bold { font-weight: 700; }
+      .dim { fill: #8b949e; }
+      .fg { fill: #d0d7de; }
+      .cyan { fill: #39c5cf; }
+      .yellow { fill: #f2cc60; }
+      .green { fill: #7ee787; }
+      .black { fill: #0d1117; }
+      .border { fill: none; stroke: #d0d7de; stroke-width: 2; opacity: 0.9; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#eef2f7"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="58" width="1460" height="784" rx="18" fill="#0d1117"/>
+    <rect x="70" y="58" width="1460" height="50" rx="18" fill="#161b22"/>
+    <circle cx="104" cy="83" r="9" fill="#ff5f57"/>
+    <circle cx="133" cy="83" r="9" fill="#ffbd2e"/>
+    <circle cx="162" cy="83" r="9" fill="#28c840"/>
+    <rect x="70" y="96" width="1460" height="746" rx="0" fill="#0d1117"/>
+
+    <g class="term" transform="translate(100 148)">
+      <rect class="border" x="0" y="-30" width="1400" height="82" rx="10"/>
+      <text y="22">
+        <tspan class="fg bold">Git Lane</tspan>
+        <tspan dx="500" class="cyan">FOCUSED</tspan>
+        <tspan dx="22" class="dim">origin OFF</tspan>
+        <tspan dx="22" class="dim">view V</tspan>
+        <tspan dx="22" class="dim">refs </tspan>
+        <tspan class="green">main</tspan>
+      </text>
+
+      <text y="84">
+        <tspan class="dim">selected lanes</tspan>
+        <tspan dx="26" class="cyan">◆ ref 1: main</tspan>
+      </text>
+
+      <g transform="translate(0 132)">
+        <text y="0">
+          <tspan class="yellow">› </tspan>
+          <tspan class="yellow bold">◆</tspan>
+          <tspan dx="28" class="yellow bold">215028c</tspan>
+          <tspan dx="18" class="green bold">[main]</tspan>
+          <tspan dx="14" class="fg bold">Bump version to 1.0.5</tspan>
+          <tspan dx="14" class="dim small">dennis · 08/26</tspan>
+        </text>
+        <text y="38"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">3568892</tspan><tspan dx="18" class="fg">Show uncommitted changes in graph</tspan><tspan dx="14" class="dim small">dennis · 08/26</tspan></text>
+        <text y="76"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">3524d92</tspan><tspan dx="18" class="fg">Release 1.0.4</tspan><tspan dx="14" class="dim small">dennis · 08/21</tspan></text>
+        <text y="114"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">4782ed6</tspan><tspan dx="18" class="fg">Release 0.1.3</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="152"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">4748a16</tspan><tspan dx="18" class="fg">Use selected ref lanes in vertical view</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="190"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">eddea1e</tspan><tspan dx="18" class="fg">Fix horizontal branch lane fallback</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="228"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">b92c74a</tspan><tspan dx="18" class="fg">Separate selected ref display lanes</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="266"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">932fd4e</tspan><tspan dx="18" class="fg">Release 0.1.2</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="304"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">8e4d6a8</tspan><tspan dx="18" class="fg">Highlight branch refs with badge backgrounds</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="342"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">cc52817</tspan><tspan dx="18" class="fg">Add package repository metadata</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+        <text y="380"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">5104f75</tspan><tspan dx="18" class="fg">Release 0.1.1</tspan><tspan dx="14" class="dim small">dennis · 08/20</tspan></text>
+      </g>
+
+      <rect class="border" x="0" y="544" width="1400" height="76" rx="10"/>
+      <text y="590" class="dim small">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
+    </g>
+  </g>
+</svg>
