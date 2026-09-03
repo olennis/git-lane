@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Git Lane branch filter</title>
+  <desc id="desc">Actual Git Lane branch filter screen captured from this repository.</desc>
+  <style>.bg{fill:#0d1117}.bar{fill:#161b22}.border{fill:none;stroke:#d0d7de;stroke-width:2}.t{font:20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#d0d7de}.b{font-weight:700}.dim{fill:#8b949e}.yellow{fill:#f2cc60}.green{fill:#7ee787}</style>
+  <rect width="1200" height="720" fill="#eef2f7"/><rect x="70" y="50" width="1060" height="620" rx="16" class="bg"/><rect x="70" y="50" width="1060" height="48" rx="16" class="bar"/><circle cx="104" cy="74" r="9" fill="#ff5f57"/><circle cx="134" cy="74" r="9" fill="#ffbd2e"/><circle cx="164" cy="74" r="9" fill="#28c840"/>
+  <g class="t" transform="translate(104 132)">
+    <rect x="0" y="-24" width="992" height="64" rx="8" class="border"/><text y="16"><tspan class="b">Git Lane</tspan><tspan dx="490" class="yellow">FULL</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="dim">view V</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main</tspan></text>
+    <rect x="0" y="70" width="992" height="138" rx="8" class="border"/>
+    <text y="110" class="b">Visible branches</text>
+    <text y="146" class="dim">Space toggle · Enter apply · ↑↓/←→ move · Esc cancel</text>
+    <rect x="18" y="164" width="240" height="28" fill="#f2cc60"/>
+    <text y="186" fill="#0d1117" class="b">› ● main  ← HEAD</text>
+    <rect x="0" y="274" width="992" height="64" rx="8" class="border"/><text y="314" class="dim">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
+  </g>
+</svg>

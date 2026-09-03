@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Git Lane commit details</title>
+  <desc id="desc">Actual Git Lane commit details screen captured from this repository.</desc>
+  <style>.bg{fill:#0d1117}.bar{fill:#161b22}.border{fill:none;stroke:#d0d7de;stroke-width:2}.t{font:20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#d0d7de}.b{font-weight:700}.dim{fill:#8b949e}.cyan{fill:#39c5cf}.green{fill:#7ee787}</style>
+  <rect width="1200" height="720" fill="#eef2f7"/><rect x="70" y="50" width="1060" height="620" rx="16" class="bg"/><rect x="70" y="50" width="1060" height="48" rx="16" class="bar"/><circle cx="104" cy="74" r="9" fill="#ff5f57"/><circle cx="134" cy="74" r="9" fill="#ffbd2e"/><circle cx="164" cy="74" r="9" fill="#28c840"/>
+  <g class="t" transform="translate(104 132)">
+    <rect x="0" y="-24" width="992" height="64" rx="8" class="border"/><text y="16"><tspan class="b">Git Lane</tspan><tspan dx="430" class="cyan">FOCUSED</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="dim">view V</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main</tspan></text>
+    <rect x="0" y="70" width="992" height="210" rx="8" class="border"/>
+    <text y="110" class="b">docs: expand screenshot gallery</text>
+    <text y="146"><tspan class="dim">commit </tspan><tspan>a44c061b26b141fc6b09f1809b6c179e0189a79f</tspan></text>
+    <text y="182"><tspan class="dim">author </tspan><tspan>dennis</tspan></text>
+    <text y="218"><tspan class="dim">refs   </tspan><tspan>HEAD -&gt; main</tspan></text>
+    <text y="254"><tspan class="dim">parents</tspan><tspan>82a5eae0c2d017600e6fd0e5d217f8ddb6ebade4</tspan></text>
+    <text y="294" class="dim">Enter/Esc close</text>
+    <rect x="0" y="344" width="992" height="64" rx="8" class="border"/><text y="384" class="dim">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
+  </g>
+</svg>
