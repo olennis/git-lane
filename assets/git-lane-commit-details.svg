@@ -1,47 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
   <title id="title">Git Lane commit details</title>
-  <desc id="desc">The Git Lane commit details panel for a selected commit.</desc>
-  <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity="0.22"/>
-    </filter>
-    <style>
-      .term { font: 24px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-      .small { font-size: 20px; }
-      .bold { font-weight: 700; }
-      .dim { fill: #8b949e; }
-      .fg { fill: #d0d7de; }
-      .yellow { fill: #f2cc60; }
-      .green { fill: #7ee787; }
-      .cyan { fill: #39c5cf; }
-      .border { fill: none; stroke: #d0d7de; stroke-width: 2; opacity: 0.9; }
-    </style>
-  </defs>
-
-  <rect width="1200" height="720" fill="#eef2f7"/>
-  <g filter="url(#shadow)">
-    <rect x="70" y="58" width="1060" height="604" rx="18" fill="#0d1117"/>
-    <rect x="70" y="58" width="1060" height="50" rx="18" fill="#161b22"/>
-    <circle cx="104" cy="83" r="9" fill="#ff5f57"/>
-    <circle cx="133" cy="83" r="9" fill="#ffbd2e"/>
-    <circle cx="162" cy="83" r="9" fill="#28c840"/>
-    <rect x="70" y="96" width="1060" height="566" fill="#0d1117"/>
-
-    <g class="term" transform="translate(116 146)">
-      <text y="0"><tspan class="yellow">› ◆</tspan><tspan dx="40" class="yellow bold">215028c</tspan><tspan dx="18" class="green bold">[main]</tspan><tspan dx="18" class="fg bold">Bump version to 1.0.5</tspan></text>
-      <text y="42"><tspan dx="43" class="cyan">│</tspan><tspan dx="42" class="yellow">3568892</tspan><tspan dx="18" class="fg">Show uncommitted changes in graph</tspan></text>
-      <text y="84"><tspan dx="43" class="cyan">│</tspan><tspan dx="42" class="yellow">3524d92</tspan><tspan dx="18" class="fg">Release 1.0.4</tspan></text>
-
-      <rect class="border" x="0" y="126" width="968" height="284" rx="10"/>
-      <text y="174" class="fg bold">Bump version to 1.0.5</text>
-      <text y="220"><tspan class="dim">commit </tspan><tspan class="fg">215028c7c3b04d8a9f8d08a99d21f40f2df17b91</tspan></text>
-      <text y="260"><tspan class="dim">author </tspan><tspan class="fg">dennis</tspan></text>
-      <text y="300"><tspan class="dim">refs   </tspan><tspan class="green">HEAD -&gt; main, origin/main</tspan></text>
-      <text y="340"><tspan class="dim">parents</tspan><tspan class="fg">3568892c7a62f1efbb7e75f5ac38bdb51e2ad119</tspan></text>
-      <text y="382" class="dim small">Enter/Esc close</text>
-
-      <rect class="border" x="0" y="454" width="968" height="76" rx="10"/>
-      <text y="502" class="dim small">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · q quit</text>
-    </g>
+  <desc id="desc">Actual Git Lane commit details screen captured from this repository.</desc>
+  <style>.bg{fill:#0d1117}.bar{fill:#161b22}.border{fill:none;stroke:#d0d7de;stroke-width:2}.t{font:20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#d0d7de}.b{font-weight:700}.dim{fill:#8b949e}.cyan{fill:#39c5cf}.green{fill:#7ee787}</style>
+  <rect width="1200" height="720" fill="#eef2f7"/><rect x="70" y="50" width="1060" height="620" rx="16" class="bg"/><rect x="70" y="50" width="1060" height="48" rx="16" class="bar"/><circle cx="104" cy="74" r="9" fill="#ff5f57"/><circle cx="134" cy="74" r="9" fill="#ffbd2e"/><circle cx="164" cy="74" r="9" fill="#28c840"/>
+  <g class="t" transform="translate(104 132)">
+    <rect x="0" y="-24" width="992" height="64" rx="8" class="border"/><text y="16"><tspan class="b">Git Lane</tspan><tspan dx="430" class="cyan">FOCUSED</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="dim">view V</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main</tspan></text>
+    <rect x="0" y="70" width="992" height="210" rx="8" class="border"/>
+    <text y="110" class="b">docs: expand screenshot gallery</text>
+    <text y="146"><tspan class="dim">commit </tspan><tspan>a44c061b26b141fc6b09f1809b6c179e0189a79f</tspan></text>
+    <text y="182"><tspan class="dim">author </tspan><tspan>dennis</tspan></text>
+    <text y="218"><tspan class="dim">refs   </tspan><tspan>HEAD -&gt; main</tspan></text>
+    <text y="254"><tspan class="dim">parents</tspan><tspan>82a5eae0c2d017600e6fd0e5d217f8ddb6ebade4</tspan></text>
+    <text y="294" class="dim">Enter/Esc close</text>
+    <rect x="0" y="344" width="992" height="64" rx="8" class="border"/><text y="384" class="dim">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
   </g>
 </svg>

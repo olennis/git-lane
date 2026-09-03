@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Git Lane full graph</title>
+  <desc id="desc">Actual Git Lane full history mode screen captured from this repository.</desc>
+  <style>.bg{fill:#0d1117}.bar{fill:#161b22}.border{fill:none;stroke:#d0d7de;stroke-width:2}.t{font:20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#d0d7de}.b{font-weight:700}.dim{fill:#8b949e}.cyan{fill:#39c5cf}.yellow{fill:#f2cc60}.green{fill:#7ee787}</style>
+  <rect width="1200" height="720" fill="#eef2f7"/><rect x="70" y="50" width="1060" height="620" rx="16" class="bg"/><rect x="70" y="50" width="1060" height="48" rx="16" class="bar"/><circle cx="104" cy="74" r="9" fill="#ff5f57"/><circle cx="134" cy="74" r="9" fill="#ffbd2e"/><circle cx="164" cy="74" r="9" fill="#28c840"/>
+  <g class="t" transform="translate(104 132)">
+    <rect x="0" y="-24" width="992" height="64" rx="8" class="border"/>
+    <text y="16"><tspan class="b">Git Lane</tspan><tspan dx="490" class="yellow">FULL</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="dim">view V</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main</tspan></text>
+    <text y="70"><tspan class="dim">selected lanes</tspan><tspan dx="24" class="cyan">◆ ref 1: main</tspan></text>
+    <text y="110"><tspan class="yellow">› ◆</tspan><tspan dx="28" class="yellow b">a44c061</tspan><tspan dx="18" class="green b">[main]</tspan><tspan dx="14" class="b">docs: expand screenshot gallery</tspan><tspan dx="14" class="dim">dennis · 09/03</tspan></text>
+    <text y="146"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">82a5eae</tspan><tspan dx="18">chore: add screenshot and auto version bump</tspan><tspan dx="14" class="dim">dennis · 09/03</tspan></text>
+    <text y="182"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">215028c</tspan><tspan dx="18">Bump version to 1.0.5</tspan><tspan dx="14" class="dim">dennis · 08/26</tspan></text>
+    <text y="218"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">3568892</tspan><tspan dx="18">Show uncommitted changes in graph</tspan><tspan dx="14" class="dim">dennis · 08/26</tspan></text>
+    <text y="254"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">3524d92</tspan><tspan dx="18">Release 1.0.4</tspan><tspan dx="14" class="dim">dennis · 08/21</tspan></text>
+    <text y="290"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">4782ed6</tspan><tspan dx="18">Release 0.1.3</tspan><tspan dx="14" class="dim">dennis · 08/20</tspan></text>
+    <text y="326"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">4748a16</tspan><tspan dx="18">Use selected ref lanes in vertical view</tspan><tspan dx="14" class="dim">dennis · 08/20</tspan></text>
+    <text y="362"><tspan dx="42" class="cyan">│</tspan><tspan dx="40" class="yellow">eddea1e</tspan><tspan dx="18">Fix horizontal branch lane fallback</tspan><tspan dx="14" class="dim">dennis · 08/20</tspan></text>
+    <rect x="0" y="488" width="992" height="64" rx="8" class="border"/><text y="528" class="dim">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
+  </g>
+</svg>

@@ -6,7 +6,7 @@ A focused Git lane TUI for local development.
 
 <p>
   <img src="./assets/git-lane-screenshot.svg" alt="Git Lane focused commit graph" width="49%">
-  <img src="./assets/git-lane-origin-view.svg" alt="Git Lane showing origin branches" width="49%">
+  <img src="./assets/git-lane-full-view.svg" alt="Git Lane full history mode" width="49%">
 </p>
 <p>
   <img src="./assets/git-lane-branch-filter.svg" alt="Git Lane branch filter" width="49%">

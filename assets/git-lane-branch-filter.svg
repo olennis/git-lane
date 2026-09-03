@@ -1,49 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
   <title id="title">Git Lane branch filter</title>
-  <desc id="desc">The Git Lane branch picker showing selected local and remote branch refs.</desc>
-  <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity="0.22"/>
-    </filter>
-    <style>
-      .term { font: 24px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-      .small { font-size: 20px; }
-      .bold { font-weight: 700; }
-      .dim { fill: #8b949e; }
-      .fg { fill: #d0d7de; }
-      .yellow { fill: #f2cc60; }
-      .green { fill: #7ee787; }
-      .cyan { fill: #39c5cf; }
-      .border { fill: none; stroke: #d0d7de; stroke-width: 2; opacity: 0.9; }
-      .selected { fill: #f2cc60; }
-    </style>
-  </defs>
-
-  <rect width="1200" height="720" fill="#eef2f7"/>
-  <g filter="url(#shadow)">
-    <rect x="70" y="58" width="1060" height="604" rx="18" fill="#0d1117"/>
-    <rect x="70" y="58" width="1060" height="50" rx="18" fill="#161b22"/>
-    <circle cx="104" cy="83" r="9" fill="#ff5f57"/>
-    <circle cx="133" cy="83" r="9" fill="#ffbd2e"/>
-    <circle cx="162" cy="83" r="9" fill="#28c840"/>
-    <rect x="70" y="96" width="1060" height="566" fill="#0d1117"/>
-
-    <g class="term" transform="translate(118 148)">
-      <rect class="border" x="0" y="-26" width="964" height="500" rx="10"/>
-      <text y="22" class="fg bold">Visible branches</text>
-      <text y="62" class="dim small">Space toggle · Enter apply · ↑↓/←→ move · Esc cancel</text>
-      <rect x="18" y="90" width="900" height="38" rx="4" fill="#f2cc60"/>
-      <text y="118">
-        <tspan fill="#0d1117" class="bold">› ● main</tspan>
-        <tspan dx="24" fill="#0d1117">← HEAD</tspan>
-      </text>
-      <text y="164"><tspan class="fg">  ● feature/worktree-row</tspan></text>
-      <text y="204"><tspan class="fg">  ● release/1.0</tspan></text>
-      <text y="244"><tspan class="dim">  ○ experiment/horizontal-layout</tspan></text>
-      <text y="284"><tspan class="dim">  ○ origin/main</tspan><tspan dx="24" class="cyan">remote</tspan></text>
-      <text y="324"><tspan class="dim">  ○ origin/release/1.0</tspan><tspan dx="24" class="cyan">remote</tspan></text>
-      <text y="364"><tspan class="dim">  ○ origin/HEAD</tspan><tspan dx="24" class="cyan">remote</tspan></text>
-      <text y="420" class="dim small">Enter applies the draft branch set without leaving your terminal.</text>
-    </g>
+  <desc id="desc">Actual Git Lane branch filter screen captured from this repository.</desc>
+  <style>.bg{fill:#0d1117}.bar{fill:#161b22}.border{fill:none;stroke:#d0d7de;stroke-width:2}.t{font:20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#d0d7de}.b{font-weight:700}.dim{fill:#8b949e}.yellow{fill:#f2cc60}.green{fill:#7ee787}</style>
+  <rect width="1200" height="720" fill="#eef2f7"/><rect x="70" y="50" width="1060" height="620" rx="16" class="bg"/><rect x="70" y="50" width="1060" height="48" rx="16" class="bar"/><circle cx="104" cy="74" r="9" fill="#ff5f57"/><circle cx="134" cy="74" r="9" fill="#ffbd2e"/><circle cx="164" cy="74" r="9" fill="#28c840"/>
+  <g class="t" transform="translate(104 132)">
+    <rect x="0" y="-24" width="992" height="64" rx="8" class="border"/><text y="16"><tspan class="b">Git Lane</tspan><tspan dx="490" class="yellow">FULL</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="dim">view V</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main</tspan></text>
+    <rect x="0" y="70" width="992" height="138" rx="8" class="border"/>
+    <text y="110" class="b">Visible branches</text>
+    <text y="146" class="dim">Space toggle · Enter apply · ↑↓/←→ move · Esc cancel</text>
+    <rect x="18" y="164" width="240" height="28" fill="#f2cc60"/>
+    <text y="186" fill="#0d1117" class="b">› ● main  ← HEAD</text>
+    <rect x="0" y="274" width="992" height="64" rx="8" class="border"/><text y="314" class="dim">↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit</text>
   </g>
 </svg>
