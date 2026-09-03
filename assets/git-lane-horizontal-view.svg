@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Git Lane horizontal graph view</title>
+  <desc id="desc">The Git Lane horizontal branch lane view with commit details beside the graph.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity="0.22"/>
+    </filter>
+    <style>
+      .term { font: 23px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+      .small { font-size: 19px; }
+      .bold { font-weight: 700; }
+      .dim { fill: #8b949e; }
+      .fg { fill: #d0d7de; }
+      .yellow { fill: #f2cc60; }
+      .green { fill: #7ee787; }
+      .cyan { fill: #39c5cf; }
+      .magenta { fill: #d2a8ff; }
+      .border { fill: none; stroke: #d0d7de; stroke-width: 2; opacity: 0.9; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" fill="#eef2f7"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="58" width="1060" height="604" rx="18" fill="#0d1117"/>
+    <rect x="70" y="58" width="1060" height="50" rx="18" fill="#161b22"/>
+    <circle cx="104" cy="83" r="9" fill="#ff5f57"/>
+    <circle cx="133" cy="83" r="9" fill="#ffbd2e"/>
+    <circle cx="162" cy="83" r="9" fill="#28c840"/>
+    <rect x="70" y="96" width="1060" height="566" fill="#0d1117"/>
+
+    <g class="term" transform="translate(104 140)">
+      <rect class="border" x="0" y="-26" width="992" height="76" rx="10"/>
+      <text y="20"><tspan class="fg bold">Git Lane</tspan><tspan dx="460" class="cyan">FOCUSED</tspan><tspan dx="20" class="dim">origin OFF</tspan><tspan dx="20" class="cyan">view H</tspan><tspan dx="20" class="dim">refs </tspan><tspan class="green">main, release/1.0</tspan></text>
+
+      <text y="92" class="dim">newer ← commits → older</text>
+      <text y="140"><tspan class="green">main       </tspan><tspan class="yellow bold">◉</tspan><tspan class="cyan">──────────────◆──────────●──────●──────●──────●</tspan></text>
+      <text y="182"><tspan class="magenta">release/1.0</tspan><tspan class="magenta">  ●──────●──────●──────────────●──────●──────●</tspan></text>
+      <text y="224"><tspan class="cyan">origin/main </tspan><tspan class="cyan">  ◆──────────────●──────────────●──────●──────●</tspan></text>
+      <text y="278"><tspan class="green bold">[main]</tspan><tspan dx="18" class="fg bold">215028c Bump version to 1.0.5</tspan></text>
+
+      <rect class="border" x="0" y="326" width="992" height="156" rx="10"/>
+      <text y="374" class="fg bold">Bump version to 1.0.5</text>
+      <text y="414"><tspan class="dim">commit </tspan><tspan class="fg">215028c7c3b04d8a9f8d08a99d21f40f2df17b91</tspan></text>
+      <text y="454"><tspan class="dim">author </tspan><tspan class="fg">dennis</tspan></text>
+      <rect class="border" x="0" y="522" width="992" height="76" rx="10"/>
+      <text y="570" class="dim small">←→ move · Enter details · b branches · f focused/full · h view · q quit</text>
+    </g>
+  </g>
+</svg>

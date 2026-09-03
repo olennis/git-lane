@@ -2,7 +2,19 @@
 
 A focused Git lane TUI for local development.
 
-![Git Lane TUI showing a focused commit graph](./assets/git-lane-screenshot.svg)
+## Screenshots
+
+<p>
+  <img src="./assets/git-lane-screenshot.svg" alt="Git Lane focused commit graph" width="49%">
+  <img src="./assets/git-lane-origin-view.svg" alt="Git Lane showing origin branches" width="49%">
+</p>
+<p>
+  <img src="./assets/git-lane-branch-filter.svg" alt="Git Lane branch filter" width="49%">
+  <img src="./assets/git-lane-horizontal-view.svg" alt="Git Lane horizontal graph view" width="49%">
+</p>
+<p>
+  <img src="./assets/git-lane-commit-details.svg" alt="Git Lane commit details panel" width="49%">
+</p>
 
 The default view starts from the current branch. It also starts in **FOCUSED** history mode, which follows first-parent history so unrelated merged branches do not explode the graph into dozens of lanes.
 
