@@ -8,6 +8,7 @@ import {getWorktreeCommit} from './git/getWorktreeCommit.js';
 import type {GitBranch, GitCommit} from './git/types.js';
 import {buildGraph} from './graph/buildGraph.js';
 import {BranchFilter} from './ui/BranchFilter.js';
+import {CommandPrompt} from './ui/CommandPrompt.js';
 import {CommitDetails} from './ui/CommitDetails.js';
 import {GraphView, HorizontalGraphView} from './ui/GraphView.js';
 
@@ -15,7 +16,7 @@ type Props = {
   baseBranch?: string;
 };
 
-type Mode = 'graph' | 'branches' | 'details';
+type Mode = 'graph' | 'branches' | 'details' | 'command';
 
 const AUTO_REFRESH_INTERVAL_MS = 15_000;
 
@@ -201,6 +202,7 @@ export function App({baseBranch}: Props) {
 
     if (input === 'q') exit();
     if (input === 'b') setMode('branches');
+    if (input === ':') setMode('command');
     if (input === 'h') setHorizontalView(current => !current);
     if (input === 'r') void loadCommits(selectedRefs, focusedHistory);
     if (input === 'o') {
@@ -290,6 +292,8 @@ export function App({baseBranch}: Props) {
         />
       ) : mode === 'details' && currentCommit ? (
         <CommitDetails commit={currentCommit} onClose={() => setMode('graph')} />
+      ) : mode === 'command' ? (
+        <CommandPrompt height={contentHeight} onClose={() => setMode('graph')} />
       ) : splitView && currentCommit ? (
         <Box flexDirection="row" flexWrap="nowrap">
           <Box width={graphPaneWidth} flexShrink={0}>
@@ -319,7 +323,7 @@ export function App({baseBranch}: Props) {
 
       <Box borderStyle="round" paddingX={1}>
         <Text dimColor>
-          ↑↓/←→/jk move · Enter details · b branches · f focused/full · h view · o origin · r refresh · q quit
+          ↑↓/←→/jk move · Enter details · b branches · : command · f focused/full · h view · o origin · r refresh · q quit
         </Text>
       </Box>
     </Box>

@@ -36,6 +36,7 @@ pnpm dev -- --base develop
 - `↑` / `↓` / `←` / `→` or `j` / `k`: move through commits
 - `Enter`: commit details
 - `b`: choose visible branch refs
+- `:`: open command prompt
 - `Space`: toggle a branch in the filter
 - `Enter` in branch filter: apply selected branches
 - `Esc` in branch filter: cancel
@@ -44,6 +45,12 @@ pnpm dev -- --base develop
 - `o`: toggle origin branches on/off
 - `r`: refresh
 - `q`: quit
+
+### Command prompt
+
+Press `:` while viewing the graph to run shell commands from inside `gln`.
+Commands run in the current working directory and their output appears in the prompt.
+Use `cd <path>` to change the prompt directory, `clear` to reset prompt output, `exit` or `Esc` to return to the graph.
 
 ### Focused vs Full
 
