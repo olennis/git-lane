@@ -1,11 +1,14 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import type {GitBranch} from '../git/types.js';
+import {Section} from './Section.js';
+import {ACCENT, SELECTED_BG} from './theme.js';
 
 type Props = {
   branches: GitBranch[];
   selected: Set<string>;
   height?: number;
+  width?: number;
   onApply: (selected: Set<string>) => void;
   onClose: () => void;
 };
@@ -14,10 +17,10 @@ function windowStart(cursor: number, visibleRows: number, totalRows: number): nu
   return Math.max(0, Math.min(cursor - Math.floor(visibleRows / 2), totalRows - visibleRows));
 }
 
-export function BranchFilter({branches, selected, height, onApply, onClose}: Props) {
+export function BranchFilter({branches, selected, height, width, onApply, onClose}: Props) {
   const [cursor, setCursor] = React.useState(0);
   const [draft, setDraft] = React.useState(() => new Set(selected));
-  const visibleRows = Math.max(1, (height ?? process.stdout.rows ?? 20) - 5);
+  const visibleRows = Math.max(1, (height ?? process.stdout.rows ?? 20) - 6);
 
   const orderedBranches = React.useMemo(
     () => [...branches].sort((a, b) => Number(b.current) - Number(a.current) || a.name.localeCompare(b.name)),
@@ -65,30 +68,31 @@ export function BranchFilter({branches, selected, height, onApply, onClose}: Pro
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" paddingX={1}>
-      <Text bold>Visible branches</Text>
-      <Text dimColor>Space toggle · Enter apply · ↑↓/←→ move · Esc cancel</Text>
+    <Section title="Branches" count={`${draft.size} selected`} width={width} height={height}>
+      <Text dimColor>Space toggle · Enter apply · ↑↓ move · Esc cancel</Text>
       {start > 0 ? <Text dimColor>↑ {start} more</Text> : null}
       {visibleBranches.map((branch, offset) => {
         const index = start + offset;
         const focused = index === cursor;
-        const row = (
-          <>
-            {focused ? '›' : ' '} {draft.has(branch.name) ? '●' : '○'} {branch.name}
-            {branch.current ? '  ← HEAD' : ''}
-            {branch.remote ? '  remote' : ''}
-          </>
-        );
+        const checked = draft.has(branch.name);
 
-        return focused ? (
-          <Text key={branch.name} inverse color="yellow" bold>{row}</Text>
-        ) : (
-          <Text key={branch.name}>{row}</Text>
+        return (
+          <Box key={branch.name} backgroundColor={focused ? SELECTED_BG : undefined}>
+            <Text wrap="truncate-end">
+              <Text color={ACCENT} bold>{focused ? '▌' : ' '}</Text>
+              {' '}
+              <Text color={checked ? 'green' : 'gray'}>{checked ? '●' : '○'}</Text>
+              {' '}
+              <Text bold={focused}>{branch.name}</Text>
+              {branch.current ? <Text color={ACCENT}>  HEAD</Text> : null}
+              {branch.remote ? <Text dimColor>  remote</Text> : null}
+            </Text>
+          </Box>
         );
       })}
       {start + visibleBranches.length < orderedBranches.length ? (
         <Text dimColor>↓ {orderedBranches.length - start - visibleBranches.length} more</Text>
       ) : null}
-    </Box>
+    </Section>
   );
 }
