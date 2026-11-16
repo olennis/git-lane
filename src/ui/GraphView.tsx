@@ -2,6 +2,7 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import type {GraphRow, GraphSegment} from '../graph/types.js';
 import {formatDate} from '../utils/formatDate.js';
+import {formatFileCount} from '../utils/formatStats.js';
 
 type Props = {
   rows: GraphRow[];
@@ -334,6 +335,7 @@ function MetadataCell({
   subject,
   author,
   date,
+  files,
   selected,
   width,
 }: {
@@ -342,6 +344,7 @@ function MetadataCell({
   subject: string;
   author?: string;
   date?: string;
+  files?: string;
   selected: boolean;
   width: number;
 }) {
@@ -358,7 +361,7 @@ function MetadataCell({
     remaining -= needed;
   }
 
-  const metaText = [author, date].filter(Boolean).join(' · ');
+  const metaText = [author, date, files].filter(Boolean).join(' · ');
   const metaSeparator = metaText ? '  ' : '';
   const metaWidth = displayWidth(metaSeparator) + displayWidth(metaText);
   const shouldShowMeta = metaText.length > 0 && remaining > metaWidth + 8;
@@ -467,6 +470,7 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
                 subject={row.commit.subject}
                 author={row.commit.author}
                 date={formatDate(row.commit.timestamp)}
+                files={formatFileCount(row.commit.stats)}
                 selected={selected}
                 width={metadataWidth}
               />
