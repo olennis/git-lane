@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Text, useApp, useInput} from 'ink';
+import {Box, Text, useApp, useInput, useWindowSize} from 'ink';
 import {fetchOrigin} from './git/fetchOrigin.js';
 import {getBranches} from './git/getBranches.js';
 import {getCommits} from './git/getCommits.js';
@@ -11,6 +11,9 @@ import {BranchFilter} from './ui/BranchFilter.js';
 import {CommandPrompt} from './ui/CommandPrompt.js';
 import {CommitDetails} from './ui/CommitDetails.js';
 import {GraphView, HorizontalGraphView} from './ui/GraphView.js';
+import {KeyHints} from './ui/KeyHints.js';
+import {Section} from './ui/Section.js';
+import {ACCENT} from './ui/theme.js';
 
 type Props = {
   baseBranch?: string;
@@ -19,6 +22,22 @@ type Props = {
 type Mode = 'graph' | 'branches' | 'details' | 'command';
 
 const AUTO_REFRESH_INTERVAL_MS = 15_000;
+// Below this width the details pane moves under the graph instead of beside it.
+const NARROW_COLUMNS = 100;
+const DETAILS_WIDTH = 44;
+const DETAILS_HEIGHT = 9;
+const KEY_HINTS: Array<[string, string]> = [
+  ['↑↓', 'move'],
+  ['⏎', 'details'],
+  ['d', 'pane'],
+  ['b', 'branches'],
+  [':', 'command'],
+  ['f', 'focused/full'],
+  ['h', 'view'],
+  ['o', 'origin'],
+  ['r', 'refresh'],
+  ['q', 'quit'],
+];
 
 function chooseInitialRefs(branches: GitBranch[], current: string, requested?: string): Set<string> {
   const refs = new Set<string>();
@@ -73,8 +92,7 @@ async function withWorktreeCommit(
 
 export function App({baseBranch}: Props) {
   const {exit} = useApp();
-  const terminalColumns = process.stdout.columns ?? 100;
-  const terminalRows = process.stdout.rows ?? 30;
+  const {columns: terminalColumns, rows: terminalRows} = useWindowSize();
   const [branches, setBranches] = React.useState<GitBranch[]>([]);
   const [selectedRefs, setSelectedRefs] = React.useState<Set<string>>(new Set());
   const [commits, setCommits] = React.useState<GitCommit[]>([]);
@@ -83,6 +101,7 @@ export function App({baseBranch}: Props) {
   const [focusedHistory, setFocusedHistory] = React.useState(true);
   const [showOrigin, setShowOrigin] = React.useState(false);
   const [horizontalView, setHorizontalView] = React.useState(false);
+  const [showDetails, setShowDetails] = React.useState(true);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>();
   const refreshing = React.useRef(false);
@@ -204,6 +223,7 @@ export function App({baseBranch}: Props) {
     if (input === 'b') setMode('branches');
     if (input === ':') setMode('command');
     if (input === 'h') setHorizontalView(current => !current);
+    if (input === 'd') setShowDetails(current => !current);
     if (input === 'r') void loadCommits(selectedRefs, focusedHistory);
     if (input === 'o') {
       const nextShowOrigin = !showOrigin;
@@ -246,35 +266,42 @@ export function App({baseBranch}: Props) {
 
   const rows = React.useMemo(() => buildGraph(commits), [commits]);
   const currentCommit = rows[cursor]?.commit;
-  const splitView = horizontalView && terminalColumns >= 70;
-  const graphPaneWidth = splitView
-    ? Math.min(Math.max(20, Math.floor(terminalColumns * 0.6)), Math.max(20, terminalColumns - 20))
-    : terminalColumns;
-  const detailsPaneWidth = splitView ? Math.max(0, terminalColumns - graphPaneWidth) : terminalColumns;
-  const contentHeight = Math.max(6, terminalRows - 4);
+  // Title, meta and key-hint lines, plus one spare row so Ink never fills the whole screen.
+  const bodyHeight = Math.max(8, terminalRows - 4);
+  const detailsBeside = showDetails && currentCommit !== undefined && terminalColumns >= NARROW_COLUMNS;
+  const detailsBelow = showDetails && currentCommit !== undefined && !detailsBeside;
+  const graphPaneWidth = detailsBeside ? terminalColumns - DETAILS_WIDTH - 1 : terminalColumns;
+  const graphPaneHeight = detailsBelow ? Math.max(5, bodyHeight - DETAILS_HEIGHT) : bodyHeight;
+  // Section border (2) and horizontal padding (2) around the graph.
+  const graphWidth = Math.max(10, graphPaneWidth - 4);
+  const graphHeight = Math.max(3, graphPaneHeight - 2);
 
   if (loading) return <Text>Loading git graph…</Text>;
   if (error) return <Text color="red">{error}</Text>;
 
+  const refs = [...selectedRefs].join(', ');
+
   return (
-    <Box flexDirection="column">
-      <Box justifyContent="space-between" borderStyle="round" paddingX={1}>
-        <Text bold>Git Lane</Text>
-        <Text>
-          <Text color={focusedHistory ? 'cyan' : 'yellow'}>
-            {focusedHistory ? 'FOCUSED' : 'FULL'}
-          </Text>
+    <Box flexDirection="column" width={terminalColumns}>
+      <Box paddingX={1}>
+        <Text wrap="truncate-end">
+          <Text color={ACCENT} bold>✦ Git Lane</Text>
           {'  '}
-          <Text color={showOrigin ? 'cyan' : 'gray'}>
-            origin {showOrigin ? 'ON' : 'OFF'}
-          </Text>
-          {'  '}
-          <Text color={horizontalView ? 'cyan' : 'gray'}>
-            view {horizontalView ? 'H' : 'V'}
-          </Text>
-          {'  '}
-          <Text dimColor>refs </Text>
-          <Text color="green">{[...selectedRefs].join(', ') || 'none'}</Text>
+          <Text bold>{commits.length}</Text>
+          <Text dimColor> commits</Text>
+        </Text>
+      </Box>
+      <Box paddingX={2}>
+        <Text wrap="truncate-end">
+          <Text dimColor>mode </Text>
+          <Text bold color={focusedHistory ? 'white' : 'yellow'}>{focusedHistory ? 'FOCUSED' : 'FULL'}</Text>
+          <Text dimColor>   origin </Text>
+          <Text bold>{showOrigin ? 'ON' : 'OFF'}</Text>
+          <Text dimColor>   view </Text>
+          <Text bold>{horizontalView ? 'H' : 'V'}</Text>
+          <Text dimColor>   refs </Text>
+          {refs ? <Text color="green">● </Text> : null}
+          <Text bold>{refs || 'none'}</Text>
         </Text>
       </Box>
 
@@ -282,7 +309,8 @@ export function App({baseBranch}: Props) {
         <BranchFilter
           branches={branches}
           selected={selectedRefs}
-          height={contentHeight}
+          width={terminalColumns}
+          height={bodyHeight}
           onApply={next => {
             setSelectedRefs(next);
             setMode('graph');
@@ -291,40 +319,53 @@ export function App({baseBranch}: Props) {
           onClose={() => setMode('graph')}
         />
       ) : mode === 'details' && currentCommit ? (
-        <CommitDetails commit={currentCommit} onClose={() => setMode('graph')} />
-      ) : mode === 'command' ? (
-        <CommandPrompt height={contentHeight} onClose={() => setMode('graph')} />
-      ) : splitView && currentCommit ? (
-        <Box flexDirection="row" flexWrap="nowrap">
-          <Box width={graphPaneWidth} flexShrink={0}>
-            <HorizontalGraphView
-              rows={rows}
-              selectedRefs={selectedRefs}
-              showOrigin={showOrigin}
-              width={graphPaneWidth}
-              cursor={cursor}
-              onCursorChange={setCursor}
-              onOpenDetails={() => currentCommit && setMode('details')}
-            />
-          </Box>
-          <CommitDetails commit={currentCommit} width={detailsPaneWidth} showHelp={false} />
-        </Box>
-      ) : (
-        <GraphView
-          rows={rows}
-          selectedRefs={selectedRefs}
-          showOrigin={showOrigin}
+        <CommitDetails
+          commit={currentCommit}
           width={terminalColumns}
-          cursor={cursor}
-          onCursorChange={setCursor}
-          onOpenDetails={() => currentCommit && setMode('details')}
+          height={bodyHeight}
+          onClose={() => setMode('graph')}
         />
+      ) : mode === 'command' ? (
+        <CommandPrompt width={terminalColumns} height={bodyHeight} onClose={() => setMode('graph')} />
+      ) : (
+        <Box flexDirection={detailsBeside ? 'row' : 'column'} columnGap={1} height={bodyHeight}>
+          <Section title="Commits" count={commits.length} width={graphPaneWidth} height={graphPaneHeight}>
+            {horizontalView ? (
+              <HorizontalGraphView
+                rows={rows}
+                selectedRefs={selectedRefs}
+                showOrigin={showOrigin}
+                width={graphWidth}
+                cursor={cursor}
+                onCursorChange={setCursor}
+                onOpenDetails={() => currentCommit && setMode('details')}
+              />
+            ) : (
+              <GraphView
+                rows={rows}
+                selectedRefs={selectedRefs}
+                showOrigin={showOrigin}
+                width={graphWidth}
+                height={graphHeight}
+                cursor={cursor}
+                onCursorChange={setCursor}
+                onOpenDetails={() => currentCommit && setMode('details')}
+              />
+            )}
+          </Section>
+          {currentCommit && (detailsBeside || detailsBelow) ? (
+            <CommitDetails
+              commit={currentCommit}
+              width={detailsBeside ? DETAILS_WIDTH : terminalColumns}
+              height={detailsBeside ? bodyHeight : DETAILS_HEIGHT}
+              showHelp={false}
+            />
+          ) : null}
+        </Box>
       )}
 
-      <Box borderStyle="round" paddingX={1}>
-        <Text dimColor>
-          ↑↓/←→/jk move · Enter details · b branches · : command · f focused/full · h view · o origin · r refresh · q quit
-        </Text>
+      <Box paddingX={1}>
+        <KeyHints hints={KEY_HINTS} />
       </Box>
     </Box>
   );
