@@ -3,10 +3,13 @@ import {statSync} from 'node:fs';
 import {homedir} from 'node:os';
 import path from 'node:path';
 import React from 'react';
-import {Box, Text, useInput} from 'ink';
+import {Text, useInput} from 'ink';
+import {Section} from './Section.js';
+import {ACCENT} from './theme.js';
 
 type Props = {
   height?: number;
+  width?: number;
   onClose: () => void;
 };
 
@@ -35,12 +38,12 @@ function resolveCdTarget(cwd: string, target: string | undefined): string {
   return path.resolve(cwd, target);
 }
 
-export function CommandPrompt({height, onClose}: Props) {
+export function CommandPrompt({height, width, onClose}: Props) {
   const [cwd, setCwd] = React.useState(process.cwd());
   const [command, setCommand] = React.useState('');
   const [running, setRunning] = React.useState(false);
   const [history, setHistory] = React.useState<CommandResult[]>([]);
-  const outputRows = Math.max(3, (height ?? process.stdout.rows ?? 20) - 5);
+  const outputRows = Math.max(3, (height ?? process.stdout.rows ?? 20) - 6);
 
   const appendResult = React.useCallback((result: CommandResult) => {
     setHistory(current => [...current.slice(-5), result]);
@@ -159,8 +162,7 @@ export function CommandPrompt({height, onClose}: Props) {
     .slice(-outputRows);
 
   return (
-    <Box flexDirection="column" borderStyle="round" paddingX={1}>
-      <Text bold>Command</Text>
+    <Section title="Command" width={width} height={height}>
       <Text dimColor>{cwd}</Text>
       {lines.length > 0 ? lines.map((line, index) => (
         <Text key={`${index}-${line}`} wrap="truncate-end">
@@ -168,12 +170,12 @@ export function CommandPrompt({height, onClose}: Props) {
         </Text>
       )) : <Text dimColor>No commands run yet.</Text>}
       <Text>
-        <Text color="green">$ </Text>
+        <Text color={ACCENT} bold>$ </Text>
         <Text>{command}</Text>
         <Text inverse> </Text>
         {running ? <Text color="yellow"> running</Text> : null}
       </Text>
       <Text dimColor>Enter run · Esc close · clear reset output · exit close</Text>
-    </Box>
+    </Section>
   );
 }

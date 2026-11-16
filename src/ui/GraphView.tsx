@@ -2,13 +2,16 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import type {GraphRow, GraphSegment} from '../graph/types.js';
 import {formatDate} from '../utils/formatDate.js';
+import {displayWidth, truncateColumns} from '../utils/displayWidth.js';
 import {formatFileCount} from '../utils/formatStats.js';
+import {ACCENT, SELECTED_BG} from './theme.js';
 
 type Props = {
   rows: GraphRow[];
   selectedRefs: Set<string>;
   showOrigin: boolean;
   width?: number;
+  height?: number;
   cursor: number;
   onCursorChange: (cursor: number) => void;
   onOpenDetails: () => void;
@@ -56,61 +59,6 @@ function normalizedRefs(refs: string[]): Set<string> {
 function selectedRefsForCommit(refs: string[], selectedRefs: Set<string>): string[] {
   const normalized = normalizedRefs(refs);
   return [...selectedRefs].filter(ref => normalized.has(ref));
-}
-
-function charWidth(char: string): number {
-  const codePoint = char.codePointAt(0) ?? 0;
-
-  if (
-    codePoint === 0 ||
-    (codePoint >= 0x300 && codePoint <= 0x36f) ||
-    (codePoint >= 0x1ab0 && codePoint <= 0x1aff) ||
-    (codePoint >= 0x1dc0 && codePoint <= 0x1dff) ||
-    (codePoint >= 0xfe20 && codePoint <= 0xfe2f)
-  ) {
-    return 0;
-  }
-
-  if (
-    (codePoint >= 0x1100 && codePoint <= 0x115f) ||
-    (codePoint >= 0x2329 && codePoint <= 0x232a) ||
-    (codePoint >= 0x2e80 && codePoint <= 0xa4cf) ||
-    (codePoint >= 0xac00 && codePoint <= 0xd7a3) ||
-    (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
-    (codePoint >= 0xfe10 && codePoint <= 0xfe19) ||
-    (codePoint >= 0xfe30 && codePoint <= 0xfe6f) ||
-    (codePoint >= 0xff00 && codePoint <= 0xff60) ||
-    (codePoint >= 0xffe0 && codePoint <= 0xffe6) ||
-    (codePoint >= 0x1f300 && codePoint <= 0x1faff)
-  ) {
-    return 2;
-  }
-
-  return 1;
-}
-
-function displayWidth(text: string): number {
-  return Array.from(text).reduce((width, char) => width + charWidth(char), 0);
-}
-
-function truncateColumns(text: string, maxColumns: number): string {
-  if (maxColumns <= 0) return '';
-  if (displayWidth(text) <= maxColumns) return text;
-  if (maxColumns <= 3) return '.'.repeat(maxColumns);
-
-  const suffix = '...';
-  const target = maxColumns - suffix.length;
-  let output = '';
-  let width = 0;
-
-  for (const char of Array.from(text)) {
-    const nextWidth = width + charWidth(char);
-    if (nextWidth > target) break;
-    output += char;
-    width = nextWidth;
-  }
-
-  return `${output}${suffix}`;
 }
 
 function SelectedBranchLane({
@@ -314,7 +262,7 @@ function CommitHash({shortHash, selected, branchTip}: {shortHash: string; select
 }
 
 function CursorCell({selected}: {selected: boolean}) {
-  return selected ? <Text color="yellow">› </Text> : <Text>  </Text>;
+  return selected ? <Text color={ACCENT} bold>▌ </Text> : <Text>  </Text>;
 }
 
 function RefBadgeText({badge}: {badge: RefBadge}) {
@@ -391,12 +339,13 @@ function MetadataCell({
   );
 }
 
-export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCursorChange, onOpenDetails}: Props) {
+export function GraphView({rows, selectedRefs, showOrigin, width, height, cursor, onCursorChange, onOpenDetails}: Props) {
   const terminalColumns = width ?? process.stdout.columns ?? 100;
-  const terminalRows = process.stdout.rows ?? 30;
+  const availableRows = height ?? (process.stdout.rows ?? 30) - 8;
   const connectorRows = rows.filter(row => row.edgeSegments).length;
   const averageHeight = rows.length === 0 ? 1 : 1 + connectorRows / rows.length;
-  const visibleRows = Math.max(6, Math.floor((terminalRows - 8) / averageHeight));
+  const branchLaneLineRows = selectedRefs.size > 0 ? 1 : 0;
+  const visibleRows = Math.max(3, Math.floor((availableRows - branchLaneLineRows) / averageHeight));
   const start = Math.max(0, Math.min(cursor - Math.floor(visibleRows / 2), rows.length - visibleRows));
   const end = Math.min(rows.length, start + visibleRows);
   const graphWidth = Math.max(1, ...rows.slice(start, end).map(row => row.laneCount * 2 - 1));
@@ -447,7 +396,12 @@ export function GraphView({rows, selectedRefs, showOrigin, width, cursor, onCurs
 
         return (
           <React.Fragment key={row.commit.hash}>
-            <Box width={rowWidth} flexDirection="row" flexWrap="nowrap">
+            <Box
+              width={rowWidth}
+              flexDirection="row"
+              flexWrap="nowrap"
+              backgroundColor={selected ? SELECTED_BG : undefined}
+            >
               <Box width={2} flexShrink={0}>
                 <CursorCell selected={selected} />
               </Box>
