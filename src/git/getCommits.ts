@@ -1,8 +1,19 @@
-import type {GitCommit} from './types.js';
+import type {CommitStats, GitCommit} from './types.js';
 import {runGit} from './runGit.js';
 
 const FIELD_SEPARATOR = '\x1f';
 const RECORD_SEPARATOR = '\x1e';
+
+export function parseShortStat(text: string): CommitStats | undefined {
+  const files = /(\d+) files? changed/.exec(text);
+  if (!files) return undefined;
+
+  return {
+    filesChanged: Number(files[1]),
+    insertions: Number(/(\d+) insertions?\(\+\)/.exec(text)?.[1] ?? 0),
+    deletions: Number(/(\d+) deletions?\(-\)/.exec(text)?.[1] ?? 0),
+  };
+}
 
 export async function getCommits(
   refs: string[],
@@ -10,7 +21,9 @@ export async function getCommits(
 ): Promise<GitCommit[]> {
   if (refs.length === 0) return [];
 
-  const format = ['%H', '%h', '%P', '%D', '%an', '%at', '%s'].join('%x1f') + '%x1e';
+  // The separator leads each record because --shortstat prints its summary after the
+  // formatted fields, so the stat line stays inside the record it belongs to.
+  const format = '%x1e' + ['%H', '%h', '%P', '%D', '%an', '%at', '%s'].join('%x1f');
   const traversalArgs = options.firstParent ? ['--first-parent'] : [];
 
   const output = await runGit(
@@ -19,6 +32,7 @@ export async function getCommits(
       '--topo-order',
       '--date-order',
       ...traversalArgs,
+      '--shortstat',
       `--max-count=${options.maxCount ?? 500}`,
       `--pretty=format:${format}`,
       ...refs,
@@ -31,8 +45,10 @@ export async function getCommits(
     .map(record => record.trim())
     .filter(Boolean)
     .map(record => {
-      const [hash, shortHash, parents, refsText, author, timestamp, subject] =
+      const [hash, shortHash, parents, refsText, author, timestamp, rest] =
         record.split(FIELD_SEPARATOR);
+      const [subject, ...statLines] = (rest ?? '').split('\n');
+      const stats = parseShortStat(statLines.join('\n'));
 
       return {
         hash: hash ?? '',
@@ -44,6 +60,7 @@ export async function getCommits(
         author: author ?? '',
         timestamp: Number(timestamp ?? 0),
         subject: subject ?? '',
+        ...(stats ? {stats} : {}),
       } satisfies GitCommit;
     });
 

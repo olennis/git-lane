@@ -33,5 +33,6 @@ export async function getWorktreeCommit(
     timestamp: Math.floor(Date.now() / 1000),
     subject: `Uncommitted changes (${fileLabel})`,
     kind: 'worktree',
+    stats: {filesChanged: changedFiles},
   };
 }
