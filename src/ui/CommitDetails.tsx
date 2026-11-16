@@ -1,6 +1,7 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import type {GitCommit} from '../git/types.js';
+import {formatStats} from '../utils/formatStats.js';
 
 type Props = {
   commit: GitCommit;
@@ -33,6 +34,7 @@ export function CommitDetails({commit, onClose, width, showHelp = true}: Props) 
       <Text bold wrap="truncate-end">{commit.subject}</Text>
       <DetailLine label={statusLabel} value={statusValue} />
       <DetailLine label="author" value={commit.author} />
+      <DetailLine label="files" value={formatStats(commit.stats)} />
       <DetailLine label="refs" value={commit.refs.join(', ')} />
       <DetailLine label="parents" value={commit.parents.join(' ')} />
       {showHelp ? <Text dimColor>Enter/Esc close</Text> : null}
