@@ -10,6 +10,7 @@ import {buildGraph} from './graph/buildGraph.js';
 import {BranchFilter} from './ui/BranchFilter.js';
 import {CommandPrompt} from './ui/CommandPrompt.js';
 import {CommitDetails} from './ui/CommitDetails.js';
+import {CommitInspector} from './ui/CommitInspector.js';
 import {GraphView, HorizontalGraphView} from './ui/GraphView.js';
 import {KeyHints} from './ui/KeyHints.js';
 import {Section} from './ui/Section.js';
@@ -28,7 +29,7 @@ const DETAILS_WIDTH = 44;
 const DETAILS_HEIGHT = 9;
 const KEY_HINTS: Array<[string, string]> = [
   ['↑↓', 'move'],
-  ['⏎', 'details'],
+  ['⏎', 'files/diff'],
   ['d', 'pane'],
   ['b', 'branches'],
   [':', 'command'],
@@ -37,6 +38,16 @@ const KEY_HINTS: Array<[string, string]> = [
   ['o', 'origin'],
   ['r', 'refresh'],
   ['q', 'quit'],
+];
+
+const INSPECTOR_KEY_HINTS: Array<[string, string]> = [
+  ['↑↓', 'file / scroll'],
+  ['⏎ →', 'open diff'],
+  ['space u', 'page'],
+  ['g G', 'top/end'],
+  ['n p', 'next/prev file'],
+  ['Esc ←', 'back'],
+  ['q', 'close'],
 ];
 
 function chooseInitialRefs(branches: GitBranch[], current: string, requested?: string): Set<string> {
@@ -319,7 +330,7 @@ export function App({baseBranch}: Props) {
           onClose={() => setMode('graph')}
         />
       ) : mode === 'details' && currentCommit ? (
-        <CommitDetails
+        <CommitInspector
           commit={currentCommit}
           width={terminalColumns}
           height={bodyHeight}
@@ -365,7 +376,7 @@ export function App({baseBranch}: Props) {
       )}
 
       <Box paddingX={1}>
-        <KeyHints hints={KEY_HINTS} />
+        <KeyHints hints={mode === 'details' ? INSPECTOR_KEY_HINTS : KEY_HINTS} />
       </Box>
     </Box>
   );

@@ -34,7 +34,8 @@ pnpm dev -- --base develop
 ## Keyboard
 
 - `↑` / `↓` / `←` / `→` or `j` / `k`: move through commits
-- `Enter`: commit details
+- `Enter`: open the commit's changed files and diffs
+- `d`: toggle the side details pane
 - `b`: choose visible branch refs
 - `:`: open command prompt
 - `Space`: toggle a branch in the filter
@@ -45,6 +46,18 @@ pnpm dev -- --base develop
 - `o`: toggle origin branches on/off
 - `r`: refresh
 - `q`: quit
+
+### Files and diffs
+
+`Enter` on a commit lists its changed files (with `+/-` line counts) next to a diff preview of the selected file.
+On narrow terminals (< 100 columns) only one pane is shown at a time.
+The uncommitted worktree row diffs against `HEAD` and includes untracked files; merge commits are compared against their first parent.
+
+- `↑` / `↓` or `j` / `k`: pick a file (file list) or scroll (diff)
+- `Enter` / `→`: focus the diff, `Esc` / `←`: back to the file list
+- `Space` / `u`: page down/up, `g` / `G`: top/bottom
+- `n` / `p`: next/previous file while reading a diff
+- `q`: back to the graph
 
 ### Command prompt
 
