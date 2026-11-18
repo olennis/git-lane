@@ -1,6 +1,12 @@
 import {spawn} from 'node:child_process';
 
-export async function runGit(args: string[], cwd = process.cwd()): Promise<string> {
+export async function runGit(
+  args: string[],
+  cwd = process.cwd(),
+  options: {okExitCodes?: number[]} = {},
+): Promise<string> {
+  const okExitCodes = options.okExitCodes ?? [0];
+
   return await new Promise((resolve, reject) => {
     const child = spawn('git', args, {
       cwd,
@@ -23,7 +29,7 @@ export async function runGit(args: string[], cwd = process.cwd()): Promise<strin
 
     child.on('error', reject);
     child.on('close', code => {
-      if (code === 0) {
+      if (code !== null && okExitCodes.includes(code)) {
         resolve(stdout);
         return;
       }
