@@ -5,6 +5,7 @@ import {getBranches} from './git/getBranches.js';
 import {getCommits} from './git/getCommits.js';
 import {getCurrentBranch} from './git/getCurrentBranch.js';
 import {getWorktreeCommit} from './git/getWorktreeCommit.js';
+import {reconcileRefs, sameRefs} from './git/reconcileRefs.js';
 import type {GitBranch, GitCommit} from './git/types.js';
 import {buildGraph} from './graph/buildGraph.js';
 import {BranchFilter} from './ui/BranchFilter.js';
@@ -116,6 +117,8 @@ export function App({baseBranch}: Props) {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>();
   const refreshing = React.useRef(false);
+  // The branch HEAD pointed at during the last load, to detect renames and checkouts.
+  const lastCurrentBranch = React.useRef('');
 
   const refreshData = React.useCallback(
     async ({
@@ -143,14 +146,25 @@ export function App({baseBranch}: Props) {
       try {
         if (fetchRemote) await fetchOrigin();
 
-        const [branchList, rawCommits, currentBranch] = await Promise.all([
+        // Branches first: the selected refs may point at a branch that was renamed or
+        // checked out away from since the last load, and `git log` would fail on it.
+        const [branchList, currentBranch] = await Promise.all([
           getBranches({includeOrigins}),
-          getCommits([...refs], {firstParent: focused}),
           getCurrentBranch(),
         ]);
-        const nextCommits = await withWorktreeCommit(rawCommits, refs, currentBranch);
+        const nextRefs = reconcileRefs({
+          refs,
+          branches: branchList,
+          previousCurrent: lastCurrentBranch.current,
+          current: currentBranch,
+          pinned: baseBranch,
+        });
+        const rawCommits = await getCommits([...nextRefs], {firstParent: focused});
+        const nextCommits = await withWorktreeCommit(rawCommits, nextRefs, currentBranch);
         const currentHash = preserveCursor ? commits[cursor]?.hash : undefined;
 
+        lastCurrentBranch.current = currentBranch;
+        if (!sameRefs(refs, nextRefs)) setSelectedRefs(nextRefs);
         setBranches(branchList);
         setCommits(nextCommits);
         setCursor(current => {
@@ -168,7 +182,7 @@ export function App({baseBranch}: Props) {
         if (visibleLoading) setLoading(false);
       }
     },
-    [commits, cursor],
+    [baseBranch, commits, cursor],
   );
 
   const loadCommits = React.useCallback(
@@ -195,6 +209,7 @@ export function App({baseBranch}: Props) {
       const nextRefs = chooseInitialRefs(branchList, current, baseBranch);
       const rawCommits = await getCommits([...nextRefs], {firstParent: true});
 
+      lastCurrentBranch.current = current;
       setBranches(branchList);
       setSelectedRefs(nextRefs);
       setCommits(await withWorktreeCommit(rawCommits, nextRefs, current));
@@ -251,11 +266,19 @@ export function App({baseBranch}: Props) {
             getBranches({includeOrigins: nextShowOrigin}),
             getCurrentBranch(),
           ]);
+          const reconciled = reconcileRefs({
+            refs: selectedRefs,
+            branches: branchList,
+            previousCurrent: lastCurrentBranch.current,
+            current: currentBranch,
+            pinned: baseBranch,
+          });
           const nextRefs = nextShowOrigin
-            ? withOriginCounterparts(selectedRefs, branchList)
-            : removeOriginRefs(selectedRefs);
+            ? withOriginCounterparts(reconciled, branchList)
+            : removeOriginRefs(reconciled);
           const rawCommits = await getCommits([...nextRefs], {firstParent: focusedHistory});
 
+          lastCurrentBranch.current = currentBranch;
           setBranches(branchList);
           setSelectedRefs(nextRefs);
           setCommits(await withWorktreeCommit(rawCommits, nextRefs, currentBranch));
