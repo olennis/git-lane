@@ -40,6 +40,10 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 ships with npm 10.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -89,6 +93,5 @@ jobs:
 
       - name: Publish to npm
         if: steps.published.outputs.exists == 'false'
+        # Authenticated via npm trusted publishing (OIDC); no NPM_TOKEN needed.
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
