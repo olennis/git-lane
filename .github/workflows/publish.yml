@@ -1,9 +1,13 @@
 name: Publish package
 
+# Release flow: work lands on `develop`; each push there builds, tests and publishes,
+# then adds a single `release: vX.Y.Z` commit to `main` whose tree is that
+# develop snapshot with the bumped version. `main` therefore only ever holds
+# release commits and is never force-pushed.
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
     inputs:
       bump:
@@ -20,6 +24,11 @@ permissions:
   contents: write
   id-token: write
 
+# Releases compute the next version from main, so two runs must never overlap.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -27,13 +36,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Find unreleased changes
+        id: changes
+        shell: bash
+        run: |
+          git fetch origin main
+          # The last release commit records which develop commit it was cut from.
+          LAST_SOURCE=$(git log -1 --format='%(trailers:key=Release-Source,valueonly)' origin/main | tr -d '[:space:]')
+          if [ "$LAST_SOURCE" = "$(git rev-parse HEAD)" ]; then
+            echo "Nothing new on develop since the last release."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Before the first trailer exists, develop branches directly off main.
+          RANGE="${LAST_SOURCE:-origin/main}..HEAD"
+          echo "range=${RANGE}" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm
+        if: steps.changes.outputs.skip == 'false'
         uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
 
       - name: Setup Node.js
+        if: steps.changes.outputs.skip == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -42,23 +73,31 @@ jobs:
 
       # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 ships with npm 10.
       - name: Update npm
+        if: steps.changes.outputs.skip == 'false'
         run: npm install -g npm@^11.5.1
 
       - name: Install dependencies
+        if: steps.changes.outputs.skip == 'false'
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        if: steps.changes.outputs.skip == 'false'
         run: pnpm build
 
       - name: Test
+        if: steps.changes.outputs.skip == 'false'
         run: pnpm test
 
       - name: Bump package version
+        if: steps.changes.outputs.skip == 'false'
         id: version
         shell: bash
         run: |
           BUMP="${{ github.event.inputs.bump || 'patch' }}"
 
+          # main is the source of truth for the version; develop never gets bump commits.
+          MAIN_VERSION=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")
+          npm version "$MAIN_VERSION" --no-git-tag-version --allow-same-version
           npm version "$BUMP" --no-git-tag-version
 
           PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -67,16 +106,8 @@ jobs:
           echo "name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Commit version bump
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore: release v${{ steps.version.outputs.version }} [skip ci]"
-          git push
-
       - name: Check published version
+        if: steps.changes.outputs.skip == 'false'
         id: published
         shell: bash
         run: |
@@ -92,6 +123,34 @@ jobs:
           fi
 
       - name: Publish to npm
-        if: steps.published.outputs.exists == 'false'
+        if: steps.changes.outputs.skip == 'false' && steps.published.outputs.exists == 'false'
         # Authenticated via npm trusted publishing (OIDC); no NPM_TOKEN needed.
         run: npm publish --access public --provenance
+
+      # Runs only after a successful (or already existing) publish, so a failed
+      # publish never burns a version number on main.
+      - name: Add release commit to main
+        if: steps.changes.outputs.skip == 'false'
+        shell: bash
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SOURCE=$(git rev-parse HEAD)
+
+          {
+            echo "release: v${VERSION}"
+            echo
+            git log --no-merges --reverse --format='- %s' "${{ steps.changes.outputs.range }}"
+            echo
+            echo "Release-Source: ${SOURCE}"
+          } > "$RUNNER_TEMP/release-message"
+
+          git add package.json
+          TREE=$(git write-tree)
+          COMMIT=$(git commit-tree "$TREE" -p origin/main -F "$RUNNER_TEMP/release-message")
+          # Fast-forward only: main gains exactly one commit per release.
+          git push origin "${COMMIT}:refs/heads/main"
