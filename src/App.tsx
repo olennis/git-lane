@@ -15,7 +15,7 @@ import {CommitInspector} from './ui/CommitInspector.js';
 import {GraphView, HorizontalGraphView} from './ui/GraphView.js';
 import {KeyHints} from './ui/KeyHints.js';
 import {Section} from './ui/Section.js';
-import {ACCENT} from './ui/theme.js';
+import {Toolbar} from './ui/Toolbar.js';
 
 type Props = {
   baseBranch?: string;
@@ -300,7 +300,7 @@ export function App({baseBranch}: Props) {
 
   const rows = React.useMemo(() => buildGraph(commits), [commits]);
   const currentCommit = rows[cursor]?.commit;
-  // Title, meta and key-hint lines, plus one spare row so Ink never fills the whole screen.
+  // Toolbar, its spacer and key-hint lines, plus one spare row so Ink never fills the whole screen.
   const bodyHeight = Math.max(8, terminalRows - 4);
   const detailsBeside = showDetails && currentCommit !== undefined && terminalColumns >= NARROW_COLUMNS;
   const detailsBelow = showDetails && currentCommit !== undefined && !detailsBeside;
@@ -313,31 +313,18 @@ export function App({baseBranch}: Props) {
   if (loading) return <Text>Loading git graph…</Text>;
   if (error) return <Text color="red">{error}</Text>;
 
-  const refs = [...selectedRefs].join(', ');
+  const allSelected = branches.length > 0 && branches.every(branch => selectedRefs.has(branch.name));
 
   return (
     <Box flexDirection="column" width={terminalColumns}>
-      <Box paddingX={1}>
-        <Text wrap="truncate-end">
-          <Text color={ACCENT} bold>✦ Git Lane</Text>
-          {'  '}
-          <Text bold>{commits.length}</Text>
-          <Text dimColor> commits</Text>
-        </Text>
-      </Box>
-      <Box paddingX={2}>
-        <Text wrap="truncate-end">
-          <Text dimColor>mode </Text>
-          <Text bold color={focusedHistory ? 'white' : 'yellow'}>{focusedHistory ? 'FOCUSED' : 'FULL'}</Text>
-          <Text dimColor>   origin </Text>
-          <Text bold>{showOrigin ? 'ON' : 'OFF'}</Text>
-          <Text dimColor>   view </Text>
-          <Text bold>{horizontalView ? 'H' : 'V'}</Text>
-          <Text dimColor>   refs </Text>
-          {refs ? <Text color="green">● </Text> : null}
-          <Text bold>{refs || 'none'}</Text>
-        </Text>
-      </Box>
+      <Toolbar
+        branches={allSelected ? undefined : [...selectedRefs]}
+        showOrigin={showOrigin}
+        focused={focusedHistory}
+        horizontal={horizontalView}
+        commitCount={commits.length}
+        width={terminalColumns}
+      />
 
       {mode === 'branches' ? (
         <BranchFilter
