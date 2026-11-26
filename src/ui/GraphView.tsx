@@ -35,7 +35,7 @@ const CURSOR_WIDTH = 2;
 const COLUMN_GAP = 2;
 const DATE_WIDTH = 17;
 const COMMIT_WIDTH = 8;
-const AUTHOR_MIN_WIDTH = 6;
+const AUTHOR_MIN_WIDTH = 8;
 const AUTHOR_MAX_WIDTH = 12;
 const GRAPH_MIN_WIDTH = 5;
 // Below this many description columns, the Author and then the Date column are dropped.

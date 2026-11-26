@@ -5,18 +5,39 @@ A focused Git lane TUI for local development.
 ## Screenshots
 
 <p>
-  <img src="./assets/git-lane-screenshot.svg" alt="Git Lane focused commit graph" width="49%">
-  <img src="./assets/git-lane-full-view.svg" alt="Git Lane full history mode" width="49%">
+  <img src="./assets/git-lane-screenshot.svg" alt="Git Lane commit table in focused history mode" width="49%">
+  <img src="./assets/git-lane-full-view.svg" alt="Git Lane full history with remote branches" width="49%">
 </p>
 <p>
   <img src="./assets/git-lane-branch-filter.svg" alt="Git Lane branch filter" width="49%">
-  <img src="./assets/git-lane-horizontal-view.svg" alt="Git Lane horizontal graph view" width="49%">
+  <img src="./assets/git-lane-horizontal-view.svg" alt="Git Lane horizontal timeline view" width="49%">
 </p>
 <p>
-  <img src="./assets/git-lane-commit-details.svg" alt="Git Lane commit details panel" width="49%">
+  <img src="./assets/git-lane-commit-details.svg" alt="Git Lane changed files and diff" width="49%">
 </p>
 
+<sub>Screenshots are real renders of a small demo repository.</sub>
+
 The default view starts from the current branch. It also starts in **FOCUSED** history mode, which follows first-parent history so unrelated merged branches do not explode the graph into dozens of lanes.
+
+## Screen layout
+
+**Toolbar** — the top line shows what you are looking at:
+
+```
+✦ Git Lane   Branches main, feat/login · focused   [✓] Show Remote Branches   ↕  42 commits
+```
+
+- `Branches` lists the selected refs (`all branches` when every ref is selected, `+N` when they do not fit), followed by the history mode: `focused` or `full history`.
+- `[✓] Show Remote Branches` reflects the `o` toggle.
+- `↕` is the vertical table view, `↔` the horizontal timeline (`h`).
+
+**Commit table** — one row per commit with **Graph · Description · Date · Author · Commit** columns. On narrow terminals the Author column, then the Date column, drop out.
+
+- Branch refs appear as chips before the subject. When a local branch and its `origin/` counterpart point at the same commit they share one chip (`main │ origin`); `○` marks the checked-out branch.
+- Graph nodes: `●` is `HEAD`, `┃` is any other commit (its lane is drawn thicker), `○` is the uncommitted worktree row.
+- Merge commits and the worktree row are dimmed.
+- A **Details** pane sits beside the table (below it under 100 columns); toggle it with `d`.
 
 ## Run locally
 
@@ -42,7 +63,7 @@ pnpm dev -- --base develop
 - `Enter` in branch filter: apply selected branches
 - `Esc` in branch filter: cancel
 - `f`: toggle **FOCUSED / FULL** history
-- `h`: toggle vertical/horizontal graph view
+- `h`: toggle vertical (`↕`) / horizontal (`↔`) view
 - `o`: toggle origin branches on/off
 - `r`: refresh
 - `q`: quit
@@ -71,6 +92,8 @@ Use `cd <path>` to change the prompt directory, `clear` to reset prompt output, 
 
 **FULL** traverses all parents of the selected refs, so merged side branches are visible as well.
 
+The toolbar shows the active mode next to the branch list (`· focused` / `· full history`).
+
 ## Install as a local command
 
 From npm:
@@ -97,5 +120,17 @@ Short alias:
 ```bash
 gln
 ```
+
+## Release flow
+
+`main` only contains release commits (`release: vX.Y.Z`). Day-to-day work goes to `develop`:
+
+1. Work on a feature branch and squash-merge it into `develop`.
+2. Push `develop`. CI builds, tests and publishes the next patch version to npm (run the workflow manually to pick `minor` / `major`).
+3. CI then appends one `release: vX.Y.Z` commit to `main` — the `develop` snapshot plus the version bump — listing the included commits and a `Release-Source` trailer. `main` is never pushed to directly or force-pushed.
+
+The version comes from `main`'s `package.json`, so `develop` does not need bump commits.
+
+## Implementation notes
 
 The graph renderer is implemented from commit/parent data rather than parsing `git log --graph`, keeping Git I/O and terminal rendering independently testable.
